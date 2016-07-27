@@ -694,10 +694,10 @@ If step is -1, go backward."
   (setq indent-tabs-mode (not indent-tabs-mode))
   (message "indent-tabs-mode=%s" indent-tabs-mode))
 
-;; {{ auto-save.el
-(require 'auto-save)
-(auto-save-enable)
-(setq auto-save-slient t)
-;; }}
+;;; {{ auto-save.el
+;(require 'auto-save)
+;(auto-save-enable)
+;(setq auto-save-slient t)
+;;; }}
 
 (provide 'init-misc)
