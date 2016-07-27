@@ -1,3 +1,6 @@
+(autoload 'ivy-recentf "ivy" "" t)
+(autoload 'ivy-read "ivy")
+
 (defvar counsel-process-filename-string nil
   "Give you a chance to change file name string for other counsel-* functions")
 ;; {{ @see http://oremacs.com/2015/04/19/git-grep-ivy/
@@ -19,37 +22,39 @@
         default-when-no-active-region
       (read-string hint))))
 
-(defun counsel-git-grep-or-find-api (fn git-cmd hint open-another-window &optional no-keyword filter)
+(defmacro counsel-git-grep-or-find-api (fn git-cmd hint open-another-window &optional no-keyword filter)
   "Apply FN on the output lines of GIT-CMD.  HINT is hint when user input.
 IF OPEN-ANOTHER-WINDOW is true, open the file in another window.
 Yank the file name at the same time.  FILTER is function to filter the collection"
-  (let ((str (if (buffer-file-name) (file-name-base (buffer-file-name)) ""))
+  `(let ((str (if (buffer-file-name) (file-name-base (buffer-file-name)) ""))
         (default-directory (locate-dominating-file
                             default-directory ".git"))
         keyword
-        collection val lst)
+        collection)
 
     ;; insert base file name into kill ring is possible
     (kill-new (if counsel-process-filename-string
                   (funcall counsel-process-filename-string str)
                 str))
 
-    (unless no-keyword
+    (unless ,no-keyword
       ;; selected region contains no regular expression
-      (setq keyword (counsel-read-keyword (concat "Enter " hint " pattern:" ))))
+      (setq keyword (counsel-read-keyword (concat "Enter " ,hint " pattern:" ))))
 
-    ;; (message "git-cmd=%s keyword=%s" (if no-keyword git-cmd (format git-cmd keyword)) keyword)
-    (setq collection (split-string (shell-command-to-string (if no-keyword
-                                                                git-cmd
-                                                              (format git-cmd keyword)))
+    (setq collection (split-string (shell-command-to-string (if ,no-keyword
+                                                                ,git-cmd
+                                                              (format ,git-cmd keyword)))
                                    "\n"
                                    t))
-    (if filter (setq collection (funcall filter collection)))
-
-    (when (and collection (> (length collection) 0))
-      (setq val (if (= 1 (length collection)) (car collection)
-                    (ivy-read (if no-keyword hint (format "matching \"%s\":" keyword)) collection)))
-      (funcall fn open-another-window val))))
+    (if ,filter (setq collection (funcall ,filter collection)))
+    (cond
+     ((and collection (= (length collection) 1))
+      (funcall ,fn ,open-another-window (car collection)))
+     (t
+      (ivy-read (if ,no-keyword ,hint (format "matching \"%s\":" keyword))
+                collection
+                :action (lambda (val)
+                          (funcall ,fn ,open-another-window val)))))))
 
 (defun counsel--open-grepped-file (open-another-window val)
   (let* ((lst (split-string val ":"))
@@ -62,7 +67,7 @@ Yank the file name at the same time.  FILTER is function to filter the collectio
       (goto-char (point-min))
       (forward-line (1- linenum)))))
 
-(defun counsel-git-grep (&optional open-another-window)
+(defun counsel-git-grep-in-project (&optional open-another-window)
   "Grep in the current git repository.
 If OPEN-ANOTHER-WINDOW is not nil, results are displayed in new window."
   (interactive "P")
@@ -228,7 +233,7 @@ Or else, find files since 24 weeks (6 months) ago."
                           )))))
 
 (defun counsel-imenu-goto ()
-  "Go to buffer position"
+  "Imenu based on ivy-mode."
   (interactive)
   (unless (featurep 'imenu)
     (require 'imenu nil t))
@@ -236,7 +241,15 @@ Or else, find files since 24 weeks (6 months) ago."
          (items (imenu--make-index-alist t)))
     (ivy-read "imenu items:"
               (ivy-imenu-get-candidates-from (delete (assoc "*Rescan*" items) items))
-              :action (lambda (k) (imenu k)))))
+              :action (lambda (k)
+                        ;; minor error handling
+                        (if (listp (cdr k)) (setq k (cdr k)))
+                        ;; copied from ido-imenu, don't know the purpose
+                        (push-mark (point))
+                        ;; better way to imenu
+                        (imenu k)
+                        (if (memq major-mode '(org-mode))
+                            (org-show-subtree))))))
 
 (defun counsel-bookmark-goto ()
   "Open ANY bookmark.  Requires bookmark+"
@@ -308,13 +321,11 @@ Or else, find files since 24 weeks (6 months) ago."
                            (insert-file-contents (file-truename "~/.bash_history"))
                            (buffer-string))
                          "\n"
-                         t)))
-         val)
-    (when (and collection (> (length collection) 0)
-               (setq val (if (= 1 (length collection)) (car collection)
-                           (ivy-read (format "Bash history:") collection))))
-      (kill-new val)
-      (message "%s => kill-ring" val))))
+                         t))))
+      (ivy-read (format "Bash history:") collection
+                :action (lambda (val))
+                (kill-new val)
+                (message "%s => kill-ring" val))))
 
 (defun counsel-git-show-hash-diff-mode (hash)
   (let ((show-cmd (format "git --no-pager show --no-color %s" hash)))

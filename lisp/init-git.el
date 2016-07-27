@@ -111,24 +111,19 @@
                      (ido-completing-read "git-svn command: " git-svn--available-commands nil t)))))
 
 (defun git-get-current-file-relative-path ()
-  (let (rlt)
-    (setq rlt
-          (replace-regexp-in-string
-           (concat "^" (file-name-as-directory default-directory))
-           ""
-           buffer-file-name))
-    ;; (message "rlt=%s" rlt)
-    rlt))
+  (replace-regexp-in-string (concat "^" (file-name-as-directory default-directory))
+                            ""
+                            buffer-file-name))
 
-(defun git-reset-current-file ()
-  "git reset file of current buffer"
+(defun git-checkout-current-file ()
+  "git checkout urrent file"
   (interactive)
-  (let ((filename))
-    (when buffer-file-name
-      (setq filename (git-get-current-file-relative-path))
-      (shell-command (concat "git reset " filename))
-      (message "DONE! git reset %s" filename)
-      )))
+  (when (and (buffer-file-name)
+             (yes-or-no-p (format "git checkout %s?"
+                                  (file-name-nondirectory (buffer-file-name)))))
+    (let* ((filename (git-get-current-file-relative-path)))
+      (shell-command (concat "git checkout " filename))
+      (message "DONE! git checkout %s" filename))))
 
 (defun git-add-current-file ()
   "git add file of current buffer"
@@ -137,24 +132,7 @@
     (when buffer-file-name
       (setq filename (git-get-current-file-relative-path))
       (shell-command (concat "git add " filename))
-      (message "DONE! git add %s" filename)
-      )))
-
-(defun git-push-remote-origin ()
-  "run `git push'"
-  (interactive)
-  (when buffer-file-name
-    (shell-command "git push")
-    (message "DONE! git push at %s" default-directory)
-    ))
-
-(defun git-add-option-update ()
-  "git add only tracked files of default directory"
-  (interactive)
-  (when buffer-file-name
-    (shell-command "git add -u")
-    (message "DONE! git add -u %s" default-directory)
-    ))
+      (message "DONE! git add %s" filename))))
 
 ;; {{ goto next/previous hunk
 (defun my-goto-next-hunk (arg)
@@ -165,8 +143,44 @@
     (if (re-search-forward "\\(^<<<<<<<\\|^=======\\|^>>>>>>>\\)" (point-max) t)
         (goto-char (line-beginning-position))
       (forward-line -1)
-      (git-gutter:next-hunk arg))
-    ))
+      (git-gutter:next-hunk arg))))
+
+(defun my-reshape-git-gutter (gutter)
+  "Re-shape gutter for `ivy-read'."
+  (let* ((linenum-start (aref gutter 3))
+         (linenum-end (aref gutter 4))
+         (target-line "")
+         (target-linenum 1)
+         (tmp-line "")
+         (max-line-length 0))
+    (save-excursion
+      (while (<= linenum-start linenum-end)
+        (goto-line linenum-start)
+        (setq tmp-line (replace-regexp-in-string "^[ \t]*" ""
+                                                 (buffer-substring (line-beginning-position)
+                                                                   (line-end-position))))
+        (when (> (length tmp-line) max-line-length)
+          (setq target-linenum linenum-start)
+          (setq target-line tmp-line)
+          (setq max-line-length (length tmp-line)))
+
+        (setq linenum-start (1+ linenum-start))))
+    ;; build (key . linenum-start)
+    (cons (format "%s %d: %s"
+                  (if (eq 'deleted (aref gutter 1)) "-" "+")
+                  target-linenum target-line)
+          target-linenum)))
+
+(defun my-goto-git-gutter ()
+  (interactive)
+  (if git-gutter:diffinfos
+      (let* ((collection (mapcar 'my-reshape-git-gutter
+                                 git-gutter:diffinfos)))
+        (ivy-read "git-gutters:"
+                  collection
+                  :action (lambda (linenum)
+                            (goto-line linenum))))
+    (message "NO git-gutters!")))
 
 (defun my-goto-previous-hunk (arg)
   (interactive "p")
@@ -189,8 +203,7 @@
               ;; get the first 7 characters as hash because that's `git log' use
               (let ((hash (substring-no-properties (match-string 2 msg) 0 7)))
                 (copy-yank-str hash)
-                (message "commit hash %s => clipboard & kill-ring" hash)
-                ))))
+                (message "commit hash %s => clipboard & kill-ring" hash)))))
 (global-set-key (kbd "C-x v p") 'git-messenger:popup-message)
 ;; }}
 

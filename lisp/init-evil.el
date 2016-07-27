@@ -23,6 +23,19 @@
 ;; here is the workaround
 (setq evil-default-cursor t)
 
+;; {{ multiple-cursors
+;; step 1, select thing in visual-mode
+;; step 2, `mc/mark-all-like-this' or `mc/mark-all-like-this-in-defun'
+;; step 3, `ace-mc-add-multiple-cursors' to remove cursor, press RET to confirm
+;; step 4, press s or S to start replace
+;; step 5, press C-g to quit multiple-cursors
+(define-key evil-visual-state-map (kbd "mn") 'mc/mark-next-like-this)
+(define-key evil-visual-state-map (kbd "ma") 'mc/mark-all-like-this)
+(define-key evil-visual-state-map (kbd "md") 'mc/mark-all-like-this-in-defun)
+(define-key evil-visual-state-map (kbd "mm") 'ace-mc-add-multiple-cursors)
+(define-key evil-visual-state-map (kbd "ms") 'ace-mc-add-single-cursor)
+;; }}
+
 ;; enable evil-mode
 (evil-mode 1)
 
@@ -55,20 +68,10 @@
     (evil-local-set-key 'normal "n" 'diff-hunk-next)
     (evil-local-set-key 'normal "P" 'diff-file-prev)
     (evil-local-set-key 'normal "N" 'diff-file-next)
+    (evil-local-set-key 'normal "q" 'ffip-diff-quit)
     (evil-local-set-key 'normal (kbd "RET") 'ffip-diff-find-file)
     (evil-local-set-key 'normal "o" 'ffip-diff-find-file))
 (add-hook 'ffip-diff-mode-hook 'ffip-diff-mode-hook-setup)
-
-;; {{ https://github.com/gabesoft/evil-mc
-;; `grm' create cursor for all matching selected
-;; `gru' undo all cursors
-;; `grs' pause cursor
-;; `grr' resume cursor
-;; `grh' make cursor here
-;; `C-p', `C-n' previous cursor, next cursor
-(require 'evil-mc)
-(global-evil-mc-mode 1)
-;; }}
 
 (require 'evil-mark-replace)
 
@@ -247,11 +250,6 @@ If the character before and after CH is space or tab, CH is NOT slash"
 (evil-escape-mode 1)
 ;; }}
 
-;; {{ evil-space
-(require 'evil-space)
-(evil-space-mode)
-;; }}
-
 ;; Move back the cursor one position when exiting insert mode
 (setq evil-move-cursor-back t)
 
@@ -271,8 +269,8 @@ If the character before and after CH is space or tab, CH is NOT slash"
   "gl" 'outline-next-visible-heading
   "$" 'org-end-of-line ; smarter behaviour on headlines etc.
   "^" 'org-beginning-of-line ; ditto
-  "<" 'org-metaleft ; out-dent
-  ">" 'org-metaright ; indent
+  "<" (lambda () (interactive) (org-demote-or-promote 1)) ; out-dent
+  ">" 'org-demote-or-promote ; indent
   (kbd "TAB") 'org-cycle)
 
 (loop for (mode . state) in
@@ -301,6 +299,7 @@ If the character before and after CH is space or tab, CH is NOT slash"
         (weibo-timeline-mode . emacs)
         (weibo-post-mode . emacs)
         (sr-mode . emacs)
+        (profiler-report-mode . emacs)
         (dired-mode . emacs)
         (compilation-mode . emacs)
         (speedbar-mode . emacs)
@@ -416,11 +415,12 @@ If the character before and after CH is space or tab, CH is NOT slash"
        "gf" 'counsel-git-find-file
        "gc" 'counsel-git-find-file-committed-with-line-at-point
        "gl" 'counsel-git-grep-yank-line
-       "gg" 'counsel-git-grep ; quickest grep should be easy to press
+       "gg" 'counsel-git-grep-in-project ; quickest grep should be easy to press
        "ga" 'counsel-git-grep-by-author
        "gm" 'counsel-git-find-my-file
        "gs" 'ffip-show-diff ; find-file-in-project 5.0+
        "sf" 'counsel-git-show-file
+       "sh" 'my-select-from-search-text-history
        "df" 'counsel-git-diff-file
        "rjs" 'run-js
        "jsr" 'js-send-region
@@ -495,6 +495,8 @@ If the character before and after CH is space or tab, CH is NOT slash"
        "rnl" 'rinari-find-log
        "rno" 'rinari-console
        "rnt" 'rinari-find-test
+       "fs" 'ffip-save-ivy-last
+       "fr" 'ffip-ivy-resume
        "ss" 'swiper-the-thing ; http://oremacs.com/2015/03/25/swiper-0.2.0/ for guide
        "hst" 'hs-toggle-fold
        "hsa" 'hs-toggle-fold-all
@@ -552,11 +554,10 @@ If the character before and after CH is space or tab, CH is NOT slash"
        "xz" 'suspend-frame
        "vm" 'vc-rename-file-and-buffer
        "vc" 'vc-copy-file-and-rename-buffer
-       "xvv" 'vc-next-action
+       "xvv" 'vc-next-action ; 'C-x v v' in original
        "va" 'git-add-current-file
-       "xvp" 'git-push-remote-origin
-       "xvu" 'git-add-option-update
-       "xvg" 'vc-annotate
+       "vk" 'git-checkout-current-file
+       "vg" 'vc-annotate ; 'C-x v g' in original
        "vs" 'git-gutter:stage-hunk
        "vr" 'git-gutter:revert-hunk
        "vl" 'vc-print-log
@@ -564,6 +565,8 @@ If the character before and after CH is space or tab, CH is NOT slash"
        "v=" 'git-gutter:popup-hunk
        "hh" 'cliphist-paste-item
        "yu" 'cliphist-select-item
+       "ih" 'my-goto-git-gutter ; use ivy-mode
+       "ir" 'ivy-resume
        "nn" 'my-goto-next-hunk
        "pp" 'my-goto-previous-hunk
        "ww" 'narrow-or-widen-dwim
@@ -582,6 +585,7 @@ If the character before and after CH is space or tab, CH is NOT slash"
        "kk" 'scroll-other-window
        "jj" 'scroll-other-window-up
        "yy" 'hydra-launcher/body
+       "tt" 'my-toggle-indentation
        "gs" 'git-gutter:set-start-revision
        "gh" 'git-gutter-reset-to-head-parent
        "gr" 'git-gutter-reset-to-default
@@ -658,6 +662,31 @@ If the character before and after CH is space or tab, CH is NOT slash"
        "mp" '(lambda () (interactive) (mpc-next-prev-song t)))
 ;; }}
 
+;; {{ remember what we searched
+;; http://emacs.stackexchange.com/questions/24099/how-to-yank-text-to-search-command-after-in-evil-mode/
+(defvar my-search-text-history nil "List of text I searched.")
+(defun my-select-from-search-text-history ()
+  (interactive)
+  (ivy-read "Search text history:" my-search-text-history
+            :action (lambda (item)
+                      (copy-yank-str item)
+                      (message "%s => clipboard & yank ring" item))))
+(defun my-cc-isearch-string ()
+  (interactive)
+  (if (and isearch-string (> (length isearch-string) 0))
+      ;; NOT pollute clipboard who has things to paste into Emacs
+      (add-to-list 'my-search-text-history isearch-string)))
+
+(defadvice evil-search-incrementally (after evil-search-incrementally-after-hack activate)
+  (my-cc-isearch-string))
+
+(defadvice evil-search-word (after evil-search-word-after-hack activate)
+  (my-cc-isearch-string))
+
+(defadvice evil-visualstar/begin-search (after evil-visualstar/begin-search-after-hack activate)
+  (my-cc-isearch-string))
+;; }}
+
 ;; change mode-line color by evil state
 (lexical-let ((default-color (cons (face-background 'mode-line)
                                    (face-foreground 'mode-line))))
@@ -674,4 +703,11 @@ If the character before and after CH is space or tab, CH is NOT slash"
 (require 'evil-nerd-commenter)
 (evilnc-default-hotkeys)
 
+;; {{ evil-exchange
+;; press gx twice to exchange, gX to cancel
+(require 'evil-exchange)
+;; change default key bindings (if you want) HERE
+;; (setq evil-exchange-key (kbd "zx"))
+(evil-exchange-install)
+;; }}
 (provide 'init-evil)
