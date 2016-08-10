@@ -5,9 +5,6 @@
 ;; kill-ring and clipboard are same? No, it's annoying!
 ;; (setq save-interprogram-paste-before-kill t)
 
-(autoload 'simpleclip-get-contents "simpleclip" "" t)
-(autoload 'simpleclip-set-contents "simpleclip" "" t)
-
 ;; you need install xsel under Linux
 ;; xclip has some problem when copying under Linux
 (defun copy-yank-str (msg &optional clipboard-only)
@@ -51,9 +48,7 @@ If NUM equals 2, copy the captalized string.
 If NUM equals 3, copy the upcased string.
 If NUM equals 4, kill-ring => clipboard."
   (interactive "P")
-  (let ((thing (if (region-active-p)
-                   (buffer-substring-no-properties (region-beginning) (region-end))
-                 (thing-at-point 'symbol))))
+  (let* ((thing (my-use-selected-string-or-ask "")))
     (cond
      ((not num))
      ((= num 1)
@@ -89,7 +84,7 @@ If N is 2, paste into kill-ring too"
       ;; do nothing
       )
      ((= 1 n)
-      (setq str (replace-regexp-in-string "^\\(+\\|-\\)" "" str)))
+      (setq str (replace-regexp-in-string "^\\(+\\|-.*\\|@@ .*$\\)" "" str)))
      ((= 2 n)
       (kill-new str)))
     (insert str)))

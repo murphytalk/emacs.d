@@ -10,9 +10,7 @@
          retval)
      ,@clean-up))
 
-;;----------------------------------------------------------------------------
 ;; Handier way to add modes to auto-mode-alist
-;;----------------------------------------------------------------------------
 (defun add-auto-mode (mode &rest patterns)
   "Add entries to `auto-mode-alist' to use `MODE' for all given file `PATTERNS'."
   (dolist (pattern patterns)
@@ -36,19 +34,19 @@
   "Remove trailing whitespace from `STR'."
   (replace-regexp-in-string "[ \t\n]*$" "" str))
 
-
-;;----------------------------------------------------------------------------
 ;; Find the directory containing a given library
-;;----------------------------------------------------------------------------
-(autoload 'find-library-name "find-func")
 (defun directory-of-library (library-name)
   "Return the directory in which the `LIBRARY-NAME' load file is found."
   (file-name-as-directory (file-name-directory (find-library-name library-name))))
 
+(defun my-use-selected-string-or-ask (hint)
+  "Use selected region or ask user input for string."
+  (if (region-active-p)
+      (buffer-substring-no-properties (region-beginning) (region-end))
+    (if (string= "" hint) (thing-at-point 'symbol)
+      (read-string hint))))
 
-;;----------------------------------------------------------------------------
 ;; Delete the current file
-;;----------------------------------------------------------------------------
 (defun delete-this-file ()
   "Delete the current file, and kill the buffer."
   (interactive)
@@ -101,6 +99,11 @@
 
 (defvar load-user-customized-major-mode-hook t)
 (defvar cached-normal-file-full-path nil)
+
+(defun buffer-too-big-p ()
+  (or (> (buffer-size) (* 5000 64))
+      (> (line-number-at-pos (point-max)) 5000)))
+
 (defun is-buffer-file-temp ()
   (interactive)
   "If (buffer-file-name) is nil or a temp file or HTML file converted from org file"
@@ -187,5 +190,6 @@
                        (interactive)
                        (diff-region-exit-from-certain-buffer ,buffer-name)))
       )))
+
 ;; }}
 (provide 'init-utils)

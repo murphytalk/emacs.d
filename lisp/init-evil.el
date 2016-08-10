@@ -321,8 +321,6 @@ If the character before and after CH is space or tab, CH is NOT slash"
 (define-key evil-normal-state-map "Y" (kbd "y$"))
 (define-key evil-normal-state-map "go" 'goto-char)
 (define-key evil-normal-state-map (kbd "M-y") 'browse-kill-ring)
-(define-key evil-normal-state-map (kbd "j") 'evil-next-visual-line)
-(define-key evil-normal-state-map (kbd "k") 'evil-previous-visual-line)
 (define-key evil-normal-state-map (kbd "C-]") 'etags-select-find-tag-at-point)
 (define-key evil-visual-state-map (kbd "C-]") 'etags-select-find-tag-at-point)
 
@@ -376,6 +374,7 @@ If the character before and after CH is space or tab, CH is NOT slash"
        "cy" 'strip-convert-lines-into-one-big-string
        "bs" '(lambda () (interactive) (goto-edge-by-comparing-font-face -1))
        "es" 'goto-edge-by-comparing-font-face
+       "vj" 'my-validate-json-or-js-expression
        "ntt" 'neotree-toggle
        "ntf" 'neotree-find ; open file in current buffer in neotree
        "ntd" 'neotree-project-dir
@@ -465,7 +464,7 @@ If the character before and after CH is space or tab, CH is NOT slash"
        "di" 'evilmi-delete-items
        "si" 'evilmi-select-items
        "jb" 'js-beautify
-       "jp" 'js2-print-json-path
+       "jp" 'my-print-json-path
        "sep" 'string-edit-at-point
        "sec" 'string-edit-conclude
        "sea" 'string-edit-abort
