@@ -112,13 +112,13 @@
                                "\\.png"
                                "\\.gif"
                                "\\.svg"
-                               "\\.ico")
+                               "\\.ico"
+                               "archive-contents")
   "List of regexps and predicates for filenames excluded from the auto save list.
 When a filename matches any of the regexps or satisfies any of the
 predicates it is excluded from the auto save list.
 A predicate is a function that is passed a filename to check and that
 must return non-nil to exclude it."
-  :type 'boolean
   :group 'auto-save)
 
 ;; Emacs' default auto-save is stupid to generate #foo# files!
@@ -127,16 +127,16 @@ must return non-nil to exclude it."
 (defun auto-save-include-p (filename)
   "Return non-nil if FILENAME should be included.
 That is, if it doesn't match any of the `auto-save-exclude' checks."
-  (let ((case-fold-search nil)
-        (checks auto-save-exclude)
-        (keepit t))
+  (let* ((case-fold-search nil)
+         (checks auto-save-exclude)
+         (keepit t))
     (while (and checks keepit)
       ;; If there was an error in a predicate, err on the side of
       ;; keeping the file.
       (setq keepit (not (ignore-errors
                           (if (stringp (car checks))
                               ;; A regexp
-                              (string-match (car checks) filename)
+                              (string-match-p (car checks) filename)
                             ;; A predicate
                             (funcall (car checks) filename))))
             checks (cdr checks)))
@@ -173,8 +173,7 @@ That is, if it doesn't match any of the `auto-save-exclude' checks."
 
 (defun auto-save-enable ()
   (interactive)
-  (run-with-idle-timer auto-save-idle t #'auto-save-buffers)
-  )
+  (run-with-idle-timer auto-save-idle t #'auto-save-buffers))
 
 (provide 'auto-save)
 

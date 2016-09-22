@@ -85,7 +85,6 @@
   (require 'init-erlang)
   (require 'init-javascript)
   (require 'init-org)
-  (require 'init-org-mime)
   (require 'init-css)
   (require 'init-python-mode)
   (require 'init-haskell)
@@ -104,7 +103,8 @@
   ;; init-evil dependent on init-clipboard
   (require 'init-clipboard)
   ;; use evil mode (vi key binding)
-  ;;(require 'init-evil)
+;  (require 'init-evil)
+  (require 'init-multiple-cursors)
   (require 'init-sh)
   (require 'init-ctags)
   (require 'init-bbdb)
@@ -132,14 +132,12 @@
   (require 'init-hydra)
 
   ;; {{ idle require other stuff
-  (setq idle-require-idle-delay 3)
+  (setq idle-require-idle-delay 2)
   (setq idle-require-symbols '(init-misc-lazy
                                init-which-func
                                init-fonts
                                init-hs-minor-mode
-                               init-textile
                                init-writting
-                               init-doxygen
                                init-pomodoro
                                init-emacspeak
                                init-artbollocks-mode
@@ -151,14 +149,9 @@
     (message "Emacs startup time: %d seconds."
              (time-to-seconds (time-since emacs-load-start-time))))
 
-  ;;----------------------------------------------------------------------------
-  ;; Locales (setting them earlier in this file doesn't work in X)
-  ;;----------------------------------------------------------------------------
-  (require 'init-locales)
-
   ;; my personal setup, other major-mode specific setup need it.
   ;; It's dependent on init-site-lisp.el
-  (if (file-exists-p "~/.emacs.d/custom.el") (load-file "~/.emacs.d/custom.el"))
+  (if (file-exists-p "~/.custom.el") (load-file "~/.custom.el"))
   )
 
 ;; @see https://www.reddit.com/r/emacs/comments/4q4ixw/how_to_forbid_emacs_to_touch_configuration_files/

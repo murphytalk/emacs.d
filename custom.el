@@ -25,10 +25,11 @@
 ;;-------------------------------------------
 ;; color theme
 ;;-------------------------------------------
-;(require 'color-theme-ld-dark)
-;(color-theme-ld-dark)
-(load "~/.emacs.d/my-color-theme")
-(my-color-theme)
+(require 'color-theme)
+(color-theme-initialize)
+;(color-theme-robin-hood)
+(color-theme-ld-dark)
+;(abyss-theme)
 
 ;;-------------------------------------------
 ;; font
@@ -55,6 +56,16 @@
 ;;and bind it to Ctrl-% key
 ;(global-set-key "%" 'match-paren)
 (global-set-key [(control ?\% )] 'match-paren)
+
+
+
+;;==========================================================================
+;;Do Re Mi
+;;https://www.emacswiki.org/emacs/DoReMi
+;;==========================================================================
+(load-file "~/.emacs.d/doremi.el")
+(load-file "~/.emacs.d/doremi-cmd.el")
+
 
 ;;==========================================================================
 ;;File/buffer name convention: this-is-a-post.rst

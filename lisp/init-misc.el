@@ -13,12 +13,23 @@
 (add-to-list 'auto-mode-alist '("\\.mailcap\\'" . conf-mode))
 ;; }}
 
+
+;; {{ auto-yasnippet
+;; Use C-q instead tab to complete snippet
+;; - `aya-create' at first, input ~ to mark the thing next
+;; - `aya-expand' to expand snippet
+;; - `aya-open-line' to finish
+(global-set-key (kbd "C-q") #'aya-open-line)
+;; }}
+
+;; {{ ace-link
+(ace-link-setup-default)
+(global-set-key (kbd "M-o") 'ace-link-addr)
+;; }}
+
 ;; open header file under cursor
 (global-set-key (kbd "C-x C-o") 'ffap)
 
-;; salesforce
-(add-to-list 'auto-mode-alist '("\\.cls\\'" . apex-mode))
-(add-to-list 'auto-mode-alist '("\\.trigger\\'" . apex-mode))
 ;; java
 (add-to-list 'auto-mode-alist '("\\.aj\\'" . java-mode))
 ;; makefile
@@ -70,26 +81,30 @@
 
 ;; {{ find-file-in-project (ffip)
 (defun my-git-show-selected-commit ()
-  "Run 'git show selected-commit' in shell"
+  "Run 'git show selected-commit' in shell."
   (let* ((git-cmd "git --no-pager log --date=short --pretty=format:'%h|%ad|%s|%an'")
          (git-cmd-rlts (split-string (shell-command-to-string git-cmd) "\n" t))
          (line (ivy-read "git log:" git-cmd-rlts)))
     (shell-command-to-string (format "git show %s"
                                      (car (split-string line "|" t))))))
 
-(defun my-git-log-patch-current-file ()
-  "Run 'git log -p --author=whoever' in shell"
-  (let* ((git-cmd-shortlog "git --no-pager log --format='%aN' | sort -u")
-         (git-cmd-shortlog-rlts (split-string (shell-command-to-string git-cmd-shortlog) "\n" t))
-         (original-author-name (ivy-read "git authors:" git-cmd-shortlog-rlts))
-         (git-cmd-log-dash-p (concat "git --no-pager log --no-color --date=short --pretty=format:'%h%d %ad %s (%an)'"
-                                      (format " --author='%s'" original-author-name)
-                                      (format " -p %s" (buffer-file-name)))))
-    (shell-command-to-string git-cmd-log-dash-p)))
+(defun my-git-diff-current-file ()
+  "Run 'git diff version:current-file current-file'."
+  (let* ((git-cmd (concat "git --no-pager log --date=short --pretty=format:'%h|%ad|%s|%an' "
+                          buffer-file-name))
+         (git-root (locate-dominating-file default-directory ".git"))
+         (git-cmd-rlts (nconc (split-string (shell-command-to-string "git branch --no-color --all") "\n" t)
+                              (split-string (shell-command-to-string git-cmd) "\n" t)))
+         (line (ivy-read "git diff same file with version" git-cmd-rlts)))
+    (shell-command-to-string (format "git --no-pager diff %s:%s %s"
+                                     (replace-regexp-in-string "^ *\\*? *" "" (car (split-string line "|" t)))
+                                     (file-relative-name buffer-file-name git-root)
+                                     buffer-file-name))))
 
 (setq ffip-match-path-instead-of-filename t)
 ;; I only use git
 (setq ffip-diff-backends '(my-git-show-selected-commit
+                           my-git-diff-current-file
                            my-git-log-patch-current-file
                            "cd $(git rev-parse --show-toplevel) && git diff"
                            "cd $(git rev-parse --show-toplevel) && git diff --cached"
@@ -116,9 +131,10 @@
 ;; {{ https://github.com/browse-kill-ring/browse-kill-ring
 (require 'browse-kill-ring)
 ;; no duplicates
-(setq browse-kill-ring-display-duplicates nil)
-;; preview is annoying
-(setq browse-kill-ring-show-preview nil)
+(setq browse-kill-ring-display-style 'one-line
+      browse-kill-ring-display-duplicates nil
+      ;; preview is annoying
+      browse-kill-ring-show-preview nil)
 (browse-kill-ring-default-keybindings)
 ;; hotkeys:
 ;; n/p => next/previous
@@ -192,10 +208,21 @@
 
 ;; {{ which-key-mode
 (require 'which-key)
+(setq which-key-allow-imprecise-window-fit t) ; performance
 (setq which-key-separator ":")
 (which-key-mode 1)
 ;; }}
 
+
+;; smex or counsel-M-x?
+(defvar my-use-smex nil
+  "Use `smex' instead of `counsel-M-x' when press M-x.")
+(defun my-M-x ()
+  (interactive)
+  (if my-use-smex (smex)
+    ;; `counsel-M-x' will use `smex' to remember history
+    (counsel-M-x)))
+(global-set-key (kbd "M-x") 'my-M-x)
 
 (defun compilation-finish-hide-buffer-on-success (buf str)
   "Could be reused by other major-mode after compilation."
@@ -553,11 +580,10 @@ If step is -1, go backward."
 (add-hook 'minibuffer-setup-hook #'my-minibuffer-setup-hook)
 (add-hook 'minibuffer-exit-hook #'my-minibuffer-exit-hook)
 
-
 ;; {{ string-edit-mode
 (defun string-edit-at-point-hook-setup ()
   (let ((major-mode-list (remove major-mode '(web-mode js2-mode js-mode css-mode emacs-lisp-mode)))
-        (str (buffer-substring-no-properties (point-min) (point-max))))
+        (str (my-buffer-str)))
     ;; (ivy-read "directories:" collection :action 'dired)
     ;; (message "original=%s" (se/find-original))
     ;; (message "major-mode-list=%s major-mode=%s" major-mode-list major-mode)
@@ -686,6 +712,19 @@ If step is -1, go backward."
 ;; {{ csv
 (add-auto-mode 'csv-mode "\\.[Cc][Ss][Vv]\\'")
 (setq csv-separators '("," ";" "|" " "))
+;; }}
+
+;; {{ regular expression tools
+(defun my-create-regex-from-kill-ring (&optional n)
+  "Create extended regex from first N items of `kill-ring'."
+  (interactive "p")
+  (when (and kill-ring (> (length kill-ring) 0))
+    (if (> n (length kill-ring))
+        (setq n (length kill-ring)))
+    (let* ((rlt (mapconcat 'identity (subseq kill-ring 0 n) "|")))
+      (setq rlt (replace-regexp-in-string "(" "\\\\(" rlt))
+      (copy-yank-str rlt)
+      (message (format "%s => kill-ring&clipboard" rlt)))))
 ;; }}
 
 (provide 'init-misc)
