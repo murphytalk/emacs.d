@@ -1,13 +1,7 @@
 ;; {{ swiper&ivy-mode
-(autoload 'ivy-recentf "ivy" "" t)
-(autoload 'ivy-read "ivy")
-(autoload 'swiper "swiper" "" t)
-
 (defun swiper-the-thing ()
   (interactive)
-  (swiper (if (region-active-p)
-              (buffer-substring-no-properties (region-beginning) (region-end))
-            (thing-at-point 'symbol))))
+  (swiper (my-use-selected-string-or-ask "")))
 ;; }}
 
 ;; {{ shell and conf
@@ -19,25 +13,29 @@
 (add-to-list 'auto-mode-alist '("\\.mailcap\\'" . conf-mode))
 ;; }}
 
+
+;; {{ auto-yasnippet
+;; Use C-q instead tab to complete snippet
+;; - `aya-create' at first, input ~ to mark the thing next
+;; - `aya-expand' to expand snippet
+;; - `aya-open-line' to finish
+(global-set-key (kbd "C-q") #'aya-open-line)
+;; }}
+
+;; {{ ace-link
+(ace-link-setup-default)
+(global-set-key (kbd "M-o") 'ace-link-addr)
+;; }}
+
 ;; open header file under cursor
 (global-set-key (kbd "C-x C-o") 'ffap)
 
-;; salesforce
-(autoload 'apex-mode "apex-mode" nil t)
-(add-to-list 'auto-mode-alist '("\\.cls\\'" . apex-mode))
-(add-to-list 'auto-mode-alist '("\\.trigger\\'" . apex-mode))
 ;; java
 (add-to-list 'auto-mode-alist '("\\.aj\\'" . java-mode))
 ;; makefile
 (add-to-list 'auto-mode-alist '("\\.ninja$" . makefile-gmake-mode))
 
 ;; {{ support MY packages which are not included in melpa
-(autoload 'wxhelp-browse-class-or-api "wxwidgets-help" "" t)
-(autoload 'issue-tracker-increment-issue-id-under-cursor "issue-tracker" "" t)
-(autoload 'issue-tracker-insert-issue-list "issue-tracker" "" t)
-(autoload 'elpamr-create-mirror-for-installed "elpa-mirror" "" t)
-(autoload 'org2nikola-export-subtree "org2nikola" "" t)
-(autoload 'org2nikola-rerender-published-posts "org2nikola" "" t)
 (setq org2nikola-use-verbose-metadata t) ; for nikola 7.7+
 ;; }}
 
@@ -82,11 +80,37 @@
 
 
 ;; {{ find-file-in-project (ffip)
-(autoload 'find-file-in-project "find-file-in-project" "" t)
-(autoload 'find-file-in-project-by-selected "find-file-in-project" "" t)
-(autoload 'ffip-get-project-root-directory "find-file-in-project" "" t)
-(setq ffip-match-path-instead-of-filename t)
+(defun my-git-show-selected-commit ()
+  "Run 'git show selected-commit' in shell."
+  (let* ((git-cmd "git --no-pager log --date=short --pretty=format:'%h|%ad|%s|%an'")
+         (git-cmd-rlts (split-string (shell-command-to-string git-cmd) "\n" t))
+         (line (ivy-read "git log:" git-cmd-rlts)))
+    (shell-command-to-string (format "git show %s"
+                                     (car (split-string line "|" t))))))
 
+(defun my-git-diff-current-file ()
+  "Run 'git diff version:current-file current-file'."
+  (let* ((git-cmd (concat "git --no-pager log --date=short --pretty=format:'%h|%ad|%s|%an' "
+                          buffer-file-name))
+         (git-root (locate-dominating-file default-directory ".git"))
+         (git-cmd-rlts (nconc (split-string (shell-command-to-string "git branch --no-color --all") "\n" t)
+                              (split-string (shell-command-to-string git-cmd) "\n" t)))
+         (line (ivy-read "git diff same file with version" git-cmd-rlts)))
+    (shell-command-to-string (format "git --no-pager diff %s:%s %s"
+                                     (replace-regexp-in-string "^ *\\*? *" "" (car (split-string line "|" t)))
+                                     (file-relative-name buffer-file-name git-root)
+                                     buffer-file-name))))
+
+(setq ffip-match-path-instead-of-filename t)
+;; I only use git
+(setq ffip-diff-backends '(my-git-show-selected-commit
+                           my-git-diff-current-file
+                           my-git-log-patch-current-file
+                           "cd $(git rev-parse --show-toplevel) && git diff"
+                           "cd $(git rev-parse --show-toplevel) && git diff --cached"
+                           (shell-command-to-string (format "cd $(git rev-parse --show-toplevel) && git --no-pager log --date=short -S'%s' -p"
+                                                            (read-string "Git search string:")))
+                           (car kill-ring)))
 (defun neotree-project-dir ()
   "Open NeoTree using the git root."
   (interactive)
@@ -97,33 +121,6 @@
           (neotree-dir project-dir)
           (neotree-find file-name))
       (message "Could not find git project root."))))
-
-(defvar my-grep-extra-opts
-  "--exclude-dir=.git --exclude-dir=.bzr --exclude-dir=.svn"
-  "Extra grep options passed to `my-grep'")
-
-(defun my-grep ()
-  "Grep file at project root directory or current directory"
-  (interactive)
-  (let ((keyword (if (region-active-p)
-                     (buffer-substring-no-properties (region-beginning) (region-end))
-                   (read-string "Enter grep pattern: ")))
-        cmd collection val 1st root)
-
-    (let ((default-directory (setq root (or (and (fboundp 'ffip-get-project-root-directory)
-                                                 (ffip-get-project-root-directory))
-                                            default-directory))))
-      (setq cmd (format "%s -rsn %s \"%s\" *"
-                        grep-program my-grep-extra-opts keyword))
-      (when (and (setq collection (split-string
-                                   (shell-command-to-string cmd)
-                                   "\n"
-                                   t))
-                 (setq val (ivy-read (format "matching \"%s\" at %s:" keyword root) collection))))
-      (setq lst (split-string val ":"))
-      (find-file (car lst))
-      (goto-char (point-min))
-      (forward-line (1- (string-to-number (cadr lst)))))))
 ;; }}
 
 ;; {{ groovy-mode
@@ -134,9 +131,10 @@
 ;; {{ https://github.com/browse-kill-ring/browse-kill-ring
 (require 'browse-kill-ring)
 ;; no duplicates
-(setq browse-kill-ring-display-duplicates nil)
-;; preview is annoying
-(setq browse-kill-ring-show-preview nil)
+(setq browse-kill-ring-display-style 'one-line
+      browse-kill-ring-display-duplicates nil
+      ;; preview is annoying
+      browse-kill-ring-show-preview nil)
 (browse-kill-ring-default-keybindings)
 ;; hotkeys:
 ;; n/p => next/previous
@@ -171,13 +169,10 @@
   (switch-to-buffer nil))
 
 ;; {{ dictionary setup
-(autoload 'dictionary-new-search "dictionary" "" t nil)
 (defun my-lookup-dict-org ()
   (interactive)
-  (dictionary-new-search (cons (if (region-active-p)
-                                   (buffer-substring-no-properties (region-beginning) (region-end))
-                                 (thing-at-point 'symbol)) dictionary-default-dictionary)))
-
+  (dictionary-new-search (cons (my-use-selected-string-or-ask "Input word for dict.org:")
+                               dictionary-default-dictionary)))
 ;; }}
 
 ;; {{ bookmark
@@ -200,9 +195,7 @@
 
 (defun lookup-doc-in-man ()
   (interactive)
-  (man (concat "-k " (if (region-active-p)
-       (buffer-substring-no-properties (region-beginning) (region-end))
-      (thing-at-point 'symbol)))))
+  (man (concat "-k " (my-use-selected-string-or-ask ""))))
 
 ;; @see http://blog.binchen.org/posts/effective-code-navigation-for-web-development.html
 ;; don't let the cursor go into minibuffer prompt
@@ -215,12 +208,45 @@
 
 ;; {{ which-key-mode
 (require 'which-key)
+(setq which-key-allow-imprecise-window-fit t) ; performance
 (setq which-key-separator ":")
 (which-key-mode 1)
 ;; }}
 
+
+;; smex or counsel-M-x?
+(defvar my-use-smex nil
+  "Use `smex' instead of `counsel-M-x' when press M-x.")
+(defun my-M-x ()
+  (interactive)
+  (if my-use-smex (smex)
+    ;; `counsel-M-x' will use `smex' to remember history
+    (counsel-M-x)))
+(global-set-key (kbd "M-x") 'my-M-x)
+
+(defun compilation-finish-hide-buffer-on-success (buf str)
+  "Could be reused by other major-mode after compilation."
+  (if (string-match "exited abnormally" str)
+      ;;there were errors
+      (message "compilation errors, press C-x ` to visit")
+    ;;no errors, make the compilation window go away in 0.5 seconds
+    (when (string-match "*compilation*" (buffer-name buf))
+      ;; @see http://emacswiki.org/emacs/ModeCompile#toc2
+      (bury-buffer "*compilation*")
+      (winner-undo)
+      (message "NO COMPILATION ERRORS!"))))
+
 (defun generic-prog-mode-hook-setup ()
+  ;; turn off `linum-mode' when there are more than 5000 lines
+  (if (buffer-too-big-p) (linum-mode -1))
+
   (unless (is-buffer-file-temp)
+
+    ;; @see http://xugx2007.blogspot.com.au/2007/06/benjamin-rutts-emacs-c-development-tips.html
+    (setq compilation-window-height 8)
+    (setq compilation-finish-functions
+          '(compilation-finish-hide-buffer-on-success))
+
     ;; fic-mode has performance issue on 5000 line C++, we can always use swiper instead
     ;; don't spell check double words
     (setq flyspell-check-doublon nil)
@@ -287,6 +313,7 @@
   (interactive)
   (shell-command "periscope.py -l en *.mkv *.mp4 *.avi &"))
 
+
 ;; {{ @see http://emacsredux.com/blog/2013/04/21/edit-files-as-root/
 (defun sudo-edit (&optional arg)
   "Edit currently visited file as root.
@@ -312,18 +339,7 @@ See \"Reusing passwords for several connections\" from INFO.
                                  buffer-file-name))))
 ;; }}
 
-;; input open source license
-(autoload 'legalese "legalese" "" t)
-
-;; {{ buf-move
-(autoload 'buf-move-left "buffer-move" "move buffer" t)
-(autoload 'buf-move-right "buffer-move" "move buffer" t)
-(autoload 'buf-move-up "buffer-move" "move buffer" t)
-(autoload 'buf-move-down "buffer-move" "move buffer" t)
-;; }}
-
 ;; edit confluence wiki
-(autoload 'confluence-edit-mode "confluence-edit" "enable confluence-edit-mode" t)
 (add-to-list 'auto-mode-alist '("\\.wiki\\'" . confluence-edit-mode))
 
 (defun erase-specific-buffer (num buf-name)
@@ -372,16 +388,7 @@ See \"Reusing passwords for several connections\" from INFO.
   (global-set-key (kbd "C--") 'text-scale-decrease))
 
 ;; vimrc
-(autoload 'vimrc-mode "vimrc-mode")
 (add-to-list 'auto-mode-alist '("\\.?vim\\(rc\\)?$" . vimrc-mode))
-
-;; {{ https://github.com/nschum/highlight-symbol.el
-(autoload 'highlight-symbol "highlight-symbol" "" t)
-(autoload 'highlight-symbol-next "highlight-symbol" "" t)
-(autoload 'highlight-symbol-prev "highlight-symbol" "" t)
-(autoload 'highlight-symbol-nav-mode "highlight-symbol" "" t)
-(autoload 'highlight-symbol-query-replace "highlight-symbol" "" t)
-;; }}
 
 ;; {{ show email sent by `git send-email' in gnus
 (eval-after-load 'gnus
@@ -428,16 +435,28 @@ See \"Reusing passwords for several connections\" from INFO.
                         "/GTAGS$"
                         "/GRAGS$"
                         "/GPATH$"
+                        ;; binary
+                        "\\.mkv$"
+                        "\\.mp[34]$"
+                        "\\.avi$"
+                        "\\.pdf$"
+                        ;; sub-titles
+                        "\\.sub$"
+                        "\\.srt$"
+                        "\\.ass$"
                         ;; ~/.emacs.d/**/*.el included
                         ;; "/home/[a-z]\+/\\.[a-df-z]" ; configuration file should not be excluded
                         ))
 ;; }}
 
 ;; {{ popup functions
-(autoload 'which-function "which-func")
-(autoload 'popup-tip "popup")
+(defun my-which-file ()
+  "Return current file name for Yasnippets."
+  (if (buffer-file-name) (format "%s:" (file-name-nondirectory (buffer-file-name)))
+    ""))
 
 (defun my-which-function ()
+  "Return current function name."
   ;; clean the imenu cache
   ;; @see http://stackoverflow.com/questions/13426564/how-to-force-a-rescan-in-imenu-by-a-function
   (setq imenu--index-alist nil)
@@ -525,15 +544,6 @@ See \"Reusing passwords for several connections\" from INFO.
           (setq rlt t)))
     rlt))
 
-;; {{ tramp setup
-(add-to-list 'backup-directory-alist
-             (cons tramp-file-name-regexp nil))
-(setq tramp-chunksize 8192)
-
-;; @see https://github.com/syl20bnr/spacemacs/issues/1921
-;; If you tramp is hanging, you can uncomment below line.
-;; (setq tramp-ssh-controlmaster-options "-o ControlMaster=auto -o ControlPath='tramp.%%C' -o ControlPersist=no")
-;; }}
 
 ;; {{
 (defun goto-edge-by-comparing-font-face (&optional step)
@@ -558,27 +568,22 @@ If step is -1, go backward."
 ;; }}
 
 (defun my-minibuffer-setup-hook ()
-  ;; Use paredit in the minibuffer
-  (conditionally-paredit-mode 1)
   (local-set-key (kbd "M-y") 'paste-from-x-clipboard)
   (local-set-key (kbd "C-k") 'kill-line)
   (setq gc-cons-threshold most-positive-fixnum))
 
 (defun my-minibuffer-exit-hook ()
   ;; evil-mode also use minibuf
-  (conditionally-paredit-mode -1)
   (setq gc-cons-threshold best-gc-cons-threshold))
 
 ;; @see http://bling.github.io/blog/2016/01/18/why-are-you-changing-gc-cons-threshold/
 (add-hook 'minibuffer-setup-hook #'my-minibuffer-setup-hook)
 (add-hook 'minibuffer-exit-hook #'my-minibuffer-exit-hook)
 
-
 ;; {{ string-edit-mode
-(autoload 'string-edit-at-point "string-edit" "" t nil)
 (defun string-edit-at-point-hook-setup ()
   (let ((major-mode-list (remove major-mode '(web-mode js2-mode js-mode css-mode emacs-lisp-mode)))
-        (str (buffer-substring-no-properties (point-min) (point-max))))
+        (str (my-buffer-str)))
     ;; (ivy-read "directories:" collection :action 'dired)
     ;; (message "original=%s" (se/find-original))
     ;; (message "major-mode-list=%s major-mode=%s" major-mode-list major-mode)
@@ -676,20 +681,50 @@ If step is -1, go backward."
 ;; cliphist.el
 (setq cliphist-use-ivy t)
 
-;; subtitles.el
-(autoload 'srt-renumber-subtitles "subtitles" "" t)
-(autoload 'srt-offset-subtitles "subtitles" "" t)
-(autoload 'srt-mult-subtitles "subtitles" "" t)
-(autoload 'srt-convert-sub-to-srt "subtitles" "" t)
+(defun pabs()
+  "Relative path to full path."
+  (interactive)
+  (let* ((str (my-use-selected-string-or-ask "Input relative path:"))
+         (path (file-truename str)))
+    (copy-yank-str path)
+    (message "%s => clipboard & yank ring" path)))
 
-;; fastdef.el
-(autoload 'fastdef-insert "fastdef" nil t)
-(autoload 'fastdef-insert-from-history "fastdef" nil t)
+(defun prel()
+  "Full path to relative path."
+  (interactive)
+  (let* ((str (my-use-selected-string-or-ask "Input absolute path:"))
+         (path (file-relative-name str)))
+    (copy-yank-str path)
+    (message "%s => clipboard & yank ring" path)))
 
-;; {{ auto-save.el
-(require 'auto-save)
-(auto-save-enable)
-(setq auto-save-slient t)
+;; indention management
+(defun my-toggle-indentation ()
+  (interactive)
+  (setq indent-tabs-mode (not indent-tabs-mode))
+  (message "indent-tabs-mode=%s" indent-tabs-mode))
+
+;;; {{ auto-save.el
+;(require 'auto-save)
+;(auto-save-enable)
+;(setq auto-save-slient t)
+;;; }}
+
+;; {{ csv
+(add-auto-mode 'csv-mode "\\.[Cc][Ss][Vv]\\'")
+(setq csv-separators '("," ";" "|" " "))
+;; }}
+
+;; {{ regular expression tools
+(defun my-create-regex-from-kill-ring (&optional n)
+  "Create extended regex from first N items of `kill-ring'."
+  (interactive "p")
+  (when (and kill-ring (> (length kill-ring) 0))
+    (if (> n (length kill-ring))
+        (setq n (length kill-ring)))
+    (let* ((rlt (mapconcat 'identity (subseq kill-ring 0 n) "|")))
+      (setq rlt (replace-regexp-in-string "(" "\\\\(" rlt))
+      (copy-yank-str rlt)
+      (message (format "%s => kill-ring&clipboard" rlt)))))
 ;; }}
 
 (provide 'init-misc)

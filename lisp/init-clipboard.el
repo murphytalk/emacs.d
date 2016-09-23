@@ -5,9 +5,6 @@
 ;; kill-ring and clipboard are same? No, it's annoying!
 ;; (setq save-interprogram-paste-before-kill t)
 
-(autoload 'simpleclip-get-contents "simpleclip" "" t)
-(autoload 'simpleclip-set-contents "simpleclip" "" t)
-
 ;; you need install xsel under Linux
 ;; xclip has some problem when copying under Linux
 (defun copy-yank-str (msg &optional clipboard-only)
@@ -22,6 +19,19 @@
       (setq filename (file-name-nondirectory buffer-file-name))
       (copy-yank-str filename)
       (message "filename %s => clipboard & yank ring" filename))))
+
+(defun cp-ffip-ivy-last ()
+  "Copy visible keys of `ivy-last' into `kill-ring' and clipboard."
+  (interactive)
+  (unless (featurep 'find-file-in-project)
+    (require 'find-file-in-project))
+  (when ffip-ivy-last-saved
+    (copy-yank-str
+     (mapconcat (lambda (e)
+                  (format "%S" (if (consp e) (car e) e)))
+                (ivy-state-collection ffip-ivy-last-saved)
+                "\n"))
+    (message "%d items from ivy-last => clipboard & yank ring" (length ivy-last))))
 
 (defun cp-filename-line-number-of-current-buffer ()
   "Copy file:line into the yank ring and clipboard"
@@ -51,9 +61,7 @@ If NUM equals 2, copy the captalized string.
 If NUM equals 3, copy the upcased string.
 If NUM equals 4, kill-ring => clipboard."
   (interactive "P")
-  (let ((thing (if (region-active-p)
-                   (buffer-substring-no-properties (region-beginning) (region-end))
-                 (thing-at-point 'symbol))))
+  (let* ((thing (my-use-selected-string-or-ask "")))
     (cond
      ((not num))
      ((= num 1)
@@ -89,7 +97,7 @@ If N is 2, paste into kill-ring too"
       ;; do nothing
       )
      ((= 1 n)
-      (setq str (replace-regexp-in-string "^\\(+\\|-\\)" "" str)))
+      (setq str (replace-regexp-in-string "^\\(+\\|-.*\\|@@ .*$\\)" "" str)))
      ((= 2 n)
       (kill-new str)))
     (insert str)))

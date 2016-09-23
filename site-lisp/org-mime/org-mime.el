@@ -6,7 +6,7 @@
 ;; Maintainer: Chen Bin (redguardtoo)
 ;; Keywords: mime, mail, email, html
 ;; Homepage: http://github.com/redguardtoo/org-mime
-;; Version: 0.0.2
+;; Version: 0.0.3
 
 ;; This file is not part of GNU Emacs.
 
@@ -50,25 +50,20 @@
 ;;
 ;;   (add-hook 'message-mode-hook
 ;;             (lambda ()
-;;               (local-set-key "\C-c\M-o" 'org-mime-htmlize)))
+;;               (local-set-key (kbd "C-c M-o") 'org-mime-htmlize)))
 ;;
 ;; and the following org-mode binding
 ;;
 ;;   (add-hook 'org-mode-hook
 ;;             (lambda ()
-;;               (local-set-key "\C-c\M-o" 'org-mime-org-buffer-htmlize)))
+;;               (local-set-key (kbd "C-c M-o") 'org-mime-org-buffer-htmlize)))
 
 ;;; Code:
-(require 'cl)
+(require 'cl-lib)
 (require 'org)
 
-(defcustom org-mime-use-property-inheritance nil
-  "Non-nil means al MAIL_ properties apply also for sublevels."
-  :group 'org-mime
-  :type 'boolean)
-
 (defcustom org-mime-default-header
-  "#+OPTIONS: latex:t\n"
+  "#+OPTIONS: latex:t toc:nil H:3\n"
   "Default header to control html export options, and ensure
   first line isn't assumed to be a title line."
   :group 'org-mime
@@ -91,33 +86,27 @@
   :group 'org-mime
   :type 'string)
 
-(defcustom org-mime-html-hook nil
+(defvar org-mime-html-hook nil
   "Hook to run over the html buffer before attachment to email.
-  This could be used for example to post-process html elements."
-  :group 'org-mime
-  :type 'hook)
+This could be used for example to post-process html elements.")
 
-(mapc (lambda (fmt)
-	(eval `(defcustom
-		 ,(intern (concat "org-mime-pre-" fmt "-hook"))
-		 nil
-		 (concat "Hook to run before " fmt " export.\nFunctions "
-			 "should take no arguments and will be run in a "
-			 "buffer holding\nthe text to be exported."))))
-      '("ascii" "org" "html"))
+(defvar org-mime-pre-html-hook nil
+  "Hook to run before html export.
+Functions should take no arguments and will be run in a
+buffer holding\nthe text to be exported.")
 
-(defcustom org-mime-send-subtree-hook nil
-  "Hook to run in the subtree in the Org-mode file before export.")
-
-(defcustom org-mime-send-buffer-hook nil
+(defvar org-mime-send-buffer-hook nil
   "Hook to run in the Org-mode file before export.")
 
-(defun org-mime--export-string (s fmt)
+(defvar org-mime-debug nil
+  "Enable debug logger.")
+
+(defun org-mime--export-string (s &optional opts)
   (if (fboundp 'org-export-string-as)
-      ;; emacs23
-      (org-export-string-as s (make-symbol fmt) t)
-    ;; emacs 24
-    (org-export-string s fmt)))
+      ;; emacs24
+      (org-export-string-as s 'html t opts)
+    ;; emacs 23
+    (org-export-string s "html")))
 
 ;; example hook, for setting a dark background in <pre style="background-color: #EEE;"> elements
 (defun org-mime-change-element-style (element style)
@@ -143,11 +132,12 @@ exported html."
 
 (defun org-mime-file (ext path id)
   "Markup a file for attachment."
+  (message "org-mime-file called => %s %s %s" ext path id)
   (case org-mime-library
-    ('mml (format (concat "<#part type=\"%s\" filename=\"%s\" "
+    (mml (format (concat "<#part type=\"%s\" filename=\"%s\" "
 			  "disposition=inline id=\"<%s>\">\n<#/part>\n")
 		  ext path id))
-    ('semi (concat
+    (semi (concat
             (format (concat "--[[%s\nContent-Disposition: "
 			    "inline;\nContent-ID: <%s>][base64]]\n")
 		    ext id)
@@ -156,14 +146,14 @@ exported html."
                (set-buffer-multibyte nil)
                (binary-insert-encoded-file path)
                (buffer-string)))))
-    ('vm "?")))
+    (vm "?")))
 
 (defun org-mime-multipart (plain html &optional images)
   "Markup a multipart/alternative with text/plain and text/html alternatives.
 If the html portion of the message includes images wrap the html
 and images in a multipart/related part."
   (case org-mime-library
-    ('mml (concat "<#multipart type=alternative><#part type=text/plain>"
+    (mml (concat "<#multipart type=alternative><#part type=text/plain>"
 		  plain
 		  (when images "<#multipart type=related>")
 		  "<#part type=text/html>"
@@ -171,7 +161,7 @@ and images in a multipart/related part."
 		  images
 		  (when images "<#/multipart>\n")
 		  "<#/multipart>\n"))
-    ('semi (concat
+    (semi (concat
             "--" "<<alternative>>-{\n"
             "--" "[[text/plain]]\n" plain
 	    (when images (concat "--" "<<alternative>>-{\n"))
@@ -179,11 +169,12 @@ and images in a multipart/related part."
 	    images
 	    (when images (concat "--" "}-<<alternative>>\n"))
             "--" "}-<<alternative>>\n"))
-    ('vm "?")))
+    (vm "?")))
 
 (defun org-mime-replace-images (str current-file)
   "Replace images in html files with cid links."
-  (let (html-images)
+  (message "org-mime-replace-images called => %s %s" str current-file)
+  (let* (html-images)
     (cons
      (replace-regexp-in-string ;; replace images in html
       "src=\"\\([^\"]+\\)\""
@@ -216,11 +207,10 @@ export that region, otherwise export the entire body."
          (html-end (or (and region-p (region-end))
                        ;; TODO: should catch signature...
                        (point-max)))
-         (raw-body (concat org-mime-default-header
+         (body (concat org-mime-default-header
 			   (buffer-substring html-start html-end)))
          (tmp-file (make-temp-name (expand-file-name
 				    "mail" temporary-file-directory)))
-         (body (org-mime--export-string raw-body "org"))
          ;; because we probably don't want to export a huge style file
          (org-export-htmlize-output-type 'inline-css)
          ;; makes the replies with ">"s look nicer
@@ -230,7 +220,7 @@ export that region, otherwise export the entire body."
          ;; to hold attachments for inline html images
          (html-and-images
           (org-mime-replace-images
-	   (org-mime--export-string raw-body "html") tmp-file))
+	   (org-mime--export-string body) tmp-file))
          (html-images (unless arg (cdr html-and-images)))
          (html (org-mime-apply-html-hook
                 (if arg
@@ -254,93 +244,81 @@ export that region, otherwise export the entire body."
 (defmacro org-mime-try (&rest body)
   `(condition-case nil ,@body (error nil)))
 
-(defun org-mime-send-subtree (&optional fmt)
-  (save-restriction
-    (org-narrow-to-subtree)
-    (run-hooks 'org-mime-send-subtree-hook)
-    (flet ((mp (p) (org-entry-get nil p org-mime-use-property-inheritance)))
-      (let* ((file (buffer-file-name (current-buffer)))
-	     (subject (or (mp "MAIL_SUBJECT") (nth 4 (org-heading-components))))
-	     (to (mp "MAIL_TO"))
-	     (cc (mp "MAIL_CC"))
-	     (bcc (mp "MAIL_BCC"))
-	     (body (buffer-substring
-		    (save-excursion (goto-char (point-min))
-				    (forward-line 1)
-				    (when (looking-at "[ \t]*:PROPERTIES:")
-				      (re-search-forward ":END:" nil)
-				      (forward-char))
-				    (point))
-		    (point-max))))
-	(org-mime-compose body (or fmt 'org) file to subject
-			  `((cc . ,cc) (bcc . ,bcc)))))))
+(defun org-mime--get-buffer-title ()
+  "Returns the `TITLE' option of the current buffer, or `nil' if
+it is not set."
+  (let* ((tmp (if (fboundp 'org-export--get-inbuffer-options)
+                  (plist-get (org-export--get-inbuffer-options) :title))))
+    (when tmp
+      (let ((txt (car tmp)))
+        (set-text-properties 0 (length txt) nil txt)
+        txt))))
 
-(defun org-mime-send-buffer (&optional fmt)
+(defun org-mime-send-buffer ()
   (run-hooks 'org-mime-send-buffer-hook)
   (let* ((region-p (org-region-active-p))
-	 (subject (org-export-grab-title-from-buffer))
          (file (buffer-file-name (current-buffer)))
+         (subject (or (org-mime--get-buffer-title)
+                      (if (not file) (buffer-name (buffer-base-buffer))
+                        (file-name-sans-extension
+                         (file-name-nondirectory file)))))
          (body-start (or (and region-p (region-beginning))
                          (save-excursion (goto-char (point-min)))))
          (body-end (or (and region-p (region-end)) (point-max)))
-	 (temp-body-file (make-temp-file "org-mime-export"))
-	 (body (buffer-substring body-start body-end)))
-    (org-mime-compose body (or fmt 'org) file nil subject)))
+         (temp-body-file (make-temp-file "org-mime-export"))
+         (body (buffer-substring body-start body-end)))
+    (org-mime-compose body file nil subject)))
 
-(defun org-mime-compose (body fmt file &optional to subject headers)
-  (unless (featurep 'message)
-    (require 'message))
-  (message-mail to subject headers nil)
-  (message-goto-body)
-  (flet ((bhook (body fmt)
-		(let ((hook (intern (concat "org-mime-pre-"
-					    (symbol-name fmt)
-					    "-hook"))))
-		  (if (> (eval `(length ,hook)) 0)
-		      (with-temp-buffer
-			(insert body)
-			(goto-char (point-min))
-			(eval `(run-hooks ',hook))
-			(buffer-string))
-		    body))))
-    (let ((fmt (if (symbolp fmt) fmt (intern fmt))))
-      (cond
-       ((eq fmt 'org)
-	(insert (org-mime--export-string
-		 (org-babel-trim (bhook body 'org)) "org")))
-       ((eq fmt 'ascii)
-	(insert (org-mime--export-string
-		 (concat "#+Title:\n" (bhook body 'ascii)) "ascii")))
-       ((or (eq fmt 'html) (eq fmt 'html-ascii))
-	(let* ((org-link-file-path-type 'absolute)
-	       ;; we probably don't want to export a huge style file
-	       (org-export-htmlize-output-type 'inline-css)
-	       (html-and-images
-		(org-mime-replace-images
-		 (org-mime--export-string (bhook body 'html) "html") file))
-	       (images (cdr html-and-images))
-	       (html (org-mime-apply-html-hook (car html-and-images))))
-	  (insert (org-mime-multipart
-		   (org-mime--export-string
-		    (org-babel-trim
-		     (bhook body (if (eq fmt 'html) "org" "ascii")))
-		    (if (eq fmt 'html) 'org 'ascii) t)
-		   html)
-		  (mapconcat 'identity images "\n"))))))))
+(defun org-mime-send-subtree ()
+  (run-hooks 'org-mime-send-buffer-hook)
+  (save-excursion
+    (org-up-heading-safe)
+    (let* ((file (buffer-file-name (current-buffer)))
+           (subject (nth 4 (org-heading-components)))
+           (opts (org-export--get-subtree-options))
+           (body (org-get-entry)))
+      (org-mime-compose body file nil subject nil opts))))
+
+(defun org-mime-compose (body file &optional to subject headers opts)
+  (let* ((fmt 'html))
+    (unless (featurep 'message)
+      (require 'message))
+    (message-mail to subject headers nil)
+    (message-goto-body)
+    (flet ((bhook (body fmt)
+                  (let ((hook 'org-mime-pre-html-hook))
+                    (if (> (eval `(length ,hook)) 0)
+                        (with-temp-buffer
+                          (insert body)
+                          (goto-char (point-min))
+                          (eval `(run-hooks ',hook))
+                          (buffer-string))
+                      body))))
+      (let* ((org-link-file-path-type 'absolute)
+             (plain (org-export-string-as (org-babel-trim body) 'ascii t opts))
+             ;; we probably don't want to export a huge style file
+             (org-export-htmlize-output-type 'inline-css)
+             (html-and-images
+              (org-mime-replace-images
+               (org-mime--export-string (bhook body 'html) opts) file))
+             (images (cdr html-and-images))
+             (html (org-mime-apply-html-hook (car html-and-images))))
+        (insert (org-mime-multipart plain html)
+                (mapconcat 'identity images "\n"))))))
 
 (defun org-mime-org-buffer-htmlize ()
   "Create an email buffer containing the current org-mode file
   exported to html and encoded in both html and in org formats as
   mime alternatives."
   (interactive)
-  (org-mime-send-buffer 'html))
+  (org-mime-send-buffer))
 
-(defun org-mime-subtree ()
-  "Create an email buffer containing the current org-mode subtree
-  exported to a org format or to the format specified by the
-  MAIL_FMT property of the subtree."
+(defun org-mime-org-subtree-htmlize ()
+  "Create an email buffer containing the current subtree of the
+  current org-mode file exported to html and encoded in both html
+  and in org formats as mime alternatives."
   (interactive)
-  (org-mime-send-subtree
-   (or (org-entry-get nil "MAIL_FMT" org-mime-use-property-inheritance) 'org)))
+  (org-mime-send-subtree))
 
 (provide 'org-mime)
+;;; org-mime.el ends here

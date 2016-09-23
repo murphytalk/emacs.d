@@ -1,5 +1,12 @@
 ;; -*- coding: utf-8 -*-
 ;(defvar best-gc-cons-threshold gc-cons-threshold "Best default gc threshold value. Should't be too big.")
+
+;; Added by Package.el.  This must come before configurations of
+;; installed packages.  Don't delete this line.  If you don't want it,
+;; just comment it out by adding a semicolon to the start of the line.
+;; You may delete these explanatory comments.
+(package-initialize)
+
 (defvar best-gc-cons-threshold 4000000 "Best default gc threshold value. Should't be too big.")
 ;; don't GC during startup to save time
 (setq gc-cons-threshold most-positive-fixnum)
@@ -23,10 +30,9 @@
                    (t nil)))
 
 ;; *Message* buffer should be writable in 24.4+
-(when (boundp 'messages-buffer-mode-hook)
-  (defun messages-buffer-mode-hook-setup ()
-    (read-only-mode -1))
-  (add-hook 'messages-buffer-mode-hook 'messages-buffer-mode-hook-setup))
+(defadvice switch-to-buffer (after switch-to-buffer-after-hack activate)
+  (if (string= "*Messages*" (buffer-name))
+      (read-only-mode -1)))
 
 ;; @see https://www.reddit.com/r/emacs/comments/3kqt6e/2_easy_little_known_steps_to_speed_up_emacs_start/
 ;; Normally file-name-handler-alist is set to
@@ -35,6 +41,7 @@
 ;; ("\\`/:" . file-name-non-special))
 ;; Which means on every .el and .elc file loaded during start up, it has to runs those regexps against the filename.
 (let ((file-name-handler-alist nil))
+  (require 'init-autoload)
   (require 'init-modeline)
   (require 'cl-lib)
   (require 'init-compat)
@@ -68,7 +75,6 @@
   (require 'init-uniquify)
   (require 'init-ibuffer)
   (require 'init-flymake)
-  (require 'init-smex)
   (require 'init-ivy)
   (require 'init-hippie-expand)
   (require 'init-windows)
@@ -79,7 +85,6 @@
   (require 'init-erlang)
   (require 'init-javascript)
   (require 'init-org)
-  (require 'init-org-mime)
   (require 'init-css)
   (require 'init-python-mode)
   (require 'init-haskell)
@@ -95,8 +100,11 @@
   ;; (require 'init-gist)
   (require 'init-moz)
   (require 'init-gtags)
+  ;; init-evil dependent on init-clipboard
+  (require 'init-clipboard)
   ;; use evil mode (vi key binding)
-  (require 'init-evil)
+;  (require 'init-evil)
+  (require 'init-multiple-cursors)
   (require 'init-sh)
   (require 'init-ctags)
   (require 'init-bbdb)
@@ -106,7 +114,6 @@
   (require 'init-term-mode)
   (require 'init-web-mode)
   (require 'init-slime)
-  (require 'init-clipboard)
   (require 'init-company)
   (require 'init-chinese-pyim) ;; cannot be idle-required
   ;; need statistics of keyfreq asap
@@ -125,15 +132,12 @@
   (require 'init-hydra)
 
   ;; {{ idle require other stuff
-  (setq idle-require-idle-delay 3)
+  (setq idle-require-idle-delay 2)
   (setq idle-require-symbols '(init-misc-lazy
                                init-which-func
                                init-fonts
                                init-hs-minor-mode
-                               init-textile
-                               init-csv
                                init-writting
-                               init-doxygen
                                init-pomodoro
                                init-emacspeak
                                init-artbollocks-mode
@@ -145,30 +149,14 @@
     (message "Emacs startup time: %d seconds."
              (time-to-seconds (time-since emacs-load-start-time))))
 
-  ;;----------------------------------------------------------------------------
-  ;; Locales (setting them earlier in this file doesn't work in X)
-  ;;----------------------------------------------------------------------------
-  (require 'init-locales)
-
   ;; my personal setup, other major-mode specific setup need it.
   ;; It's dependent on init-site-lisp.el
   (if (file-exists-p "~/.custom.el") (load-file "~/.custom.el"))
   )
 
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(git-gutter:handled-backends (quote (svn hg git)))
- '(safe-local-variable-values (quote ((lentic-init . lentic-orgel-org-init))))
- '(session-use-package t nil (session)))
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(window-numbering-face ((t (:foreground "DeepPink" :underline "DeepPink" :weight bold))) t))
+;; @see https://www.reddit.com/r/emacs/comments/4q4ixw/how_to_forbid_emacs_to_touch_configuration_files/
+(setq custom-file (concat user-emacs-directory "custom-set-variables.el"))
+(load custom-file 'noerror)
 
 (setq gc-cons-threshold best-gc-cons-threshold)
 ;;; Local Variables:

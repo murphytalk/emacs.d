@@ -7,7 +7,6 @@ anaconda-mode/
 /auto-save-list
 /.session
 /session.*
-/custom.el
 *.elc
 company-statistics-cache.el
 CVS
@@ -54,3 +53,5 @@ ido.last
 projectile.cache
 .orig
 .unpacked
+srecode-map.el
+custom-set-variables.el

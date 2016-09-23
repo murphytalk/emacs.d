@@ -13,7 +13,9 @@
       w3m-command-arguments       '("-F" "-cookie")
       w3m-mailto-url-function     'compose-mail
       browse-url-browser-function 'w3m
-      mm-text-html-renderer       'w3m
+      ;; use shr to view html mail, but if libxml NOT available
+      ;; use w3m isntead. That's Emacs 24.3+ default logic
+      ;; mm-text-html-renderer 'shr
       w3m-use-toolbar t
       ;; show images in the browser
       ;; setq w3m-default-display-inline-images t
@@ -59,13 +61,9 @@
 
 (defun w3m-guess-keyword (&optional encode-space-with-plus)
   (unless (featurep 'w3m) (require 'w3m))
-  (let (keyword encoded-keyword)
-    (setq keyword (if (region-active-p)
-             (buffer-substring-no-properties (region-beginning) (region-end))
-           (read-string "Enter keyword:")))
+  (let* ((keyword (my-use-selected-string-or-ask "Enter keyword:"))
+         (encoded-keyword (w3m-url-encode-string (setq w3m-global-keyword keyword))))
     ;; some search requires plus sign to replace space
-    (setq encoded-keyword
-          (w3m-url-encode-string (setq w3m-global-keyword keyword)))
     (if encode-space-with-plus
         (replace-regexp-in-string "%20" " " encoded-keyword)
       encoded-keyword)))
@@ -169,7 +167,7 @@
       (unless url
         (save-excursion
           (goto-char (point-min))
-          (when (string-match "^Archived-at: <?\\([^ <>]*\\)>?" (setq str (buffer-substring-no-properties (point-min) (point-max))))
+          (when (string-match "^Archived-at: <?\\([^ <>]*\\)>?" (setq str (my-buffer-str)))
             (setq url (match-string 1 str)))))
 
       (setq cmd (format "%s -cache 2000 %s &" (my-guess-mplayer-path) url))
@@ -184,7 +182,7 @@
     (save-excursion
       (goto-char (point-min))
       ;; first line in email could be some hidden line containing NO to field
-      (setq str (buffer-substring-no-properties (point-min) (point-max))))
+      (setq str (my-buffer-str)))
     ;; (message "str=%s" str)
     (if (string-match "^Subject: \\(.+\\)" str)
         (setq rlt (match-string 1 str)))
