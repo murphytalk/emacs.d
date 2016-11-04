@@ -4,7 +4,17 @@
 ;; Added by Package.el.  This must come before configurations of
 ;; installed packages.  Don't delete this line.  If you don't want it,
 ;; just comment it out by adding a semicolon to the start of the line.
-;; You may delete these explanatory comments.
+                                        ; You may delete these explanatory comments.
+
+(setq proxy (getenv "emacs_http_proxy"))
+(if (boundp 'proxy) 
+    ;;to evaluate variables in a list:
+    ;;https://www.gnu.org/software/emacs/manual/html_node/elisp/Backquote.html
+    (setq url-proxy-services
+          `(("http" . ,proxy)
+            ("https" . ,proxy)))
+)
+
 (package-initialize)
 
 (defvar best-gc-cons-threshold 4000000 "Best default gc threshold value. Should't be too big.")
@@ -151,8 +161,10 @@
 
   ;; my personal setup, other major-mode specific setup need it.
   ;; It's dependent on init-site-lisp.el
-  (if (file-exists-p "~/.custom.el") (load-file "~/.custom.el"))
-  )
+  (setq my-custom-init "~/.emacs.d/custom.el")
+  (if (file-exists-p my-custom-init)
+      (load-file my-custom-init))
+)
 
 ;; @see https://www.reddit.com/r/emacs/comments/4q4ixw/how_to_forbid_emacs_to_touch_configuration_files/
 (setq custom-file (concat user-emacs-directory "custom-set-variables.el"))
@@ -163,3 +175,5 @@
 ;;; no-byte-compile: t
 ;;; End:
 (put 'erase-buffer 'disabled nil)
+
+
