@@ -1,0 +1,33 @@
+* Overview 
+Based on [[https://github.com/redguardtoo/emacs.d][redguardtoo]] 's emacs.d. He wrote  [[https://github.com/redguardtoo/mastering-emacs-in-one-year-guide][Mastering Emacs in One year]] too.
+* [[https://github.com/redguardtoo/emacs.d/tree/master/lisp][init lisps]]
+** init-modeline
+set up the mode line as follows:
+
+buffer name (line#,col#) [current major mode Insert/Ovrerwrite MO RO] Weekday Date HH:MM 
+
+1. MO -> buffer modified
+2. RO -> buffer read-only
+
+** cl-lib
+common lisp?
+** init-combat
+** init-utils
+helper elisp functions
+** init-site-lisp
+
+** init-exec-path
+** init-frame-hooks
+defined 2 hooks to run after new frame is made, one for console and the other for GUI
+** init-spelling
+** init-xterm
+** init-gui-frames
+** init-ido
+ido is https://www.emacswiki.org/emacs/InteractivelyDoThings
+This replaces the vanilla C-x C-f to open file , press C-f during file selection to switch to the regular find-file
+* customization
+The following files are expected be under ~, the best way is to make symbolic links.
+
+1. [[.custom.el][.custome.el]] : will be loaded by init.el. Defined fonts, color theme and keyboard shortcuts.
+2. [[my-color-theme.el][my-color-theme.el]] - use color-theme-print to export the current theme to buffer, then customize it.
+
