@@ -13,7 +13,6 @@ But you may use safer HTTPS instead.")
     color-theme
     ivy
     counsel
-    swiper
     wgrep
     robe
     groovy-mode
@@ -65,11 +64,13 @@ But you may use safer HTTPS instead.")
     (setq package-archives
           '(;; uncomment below line if you need use GNU ELPA
             ;; ("gnu" . "https://elpa.gnu.org/packages/")
+            ("my-js2-mode" . "https://raw.githubusercontent.com/redguardtoo/js2-mode/release/")
             ("melpa" . "https://melpa.org/packages/")
             ("melpa-stable" . "https://stable.melpa.org/packages/")))
   (setq package-archives
         '(;; uncomment below line if you need use GNU ELPA
           ;; ("gnu" . "http://elpa.gnu.org/packages/")
+          ("my-js2-mode" . "http://raw.githubusercontent.com/redguardtoo/js2-mode/release/")
           ("melpa" . "http://melpa.org/packages/")
           ("melpa-stable" . "http://stable.melpa.org/packages/")))
   )
@@ -207,7 +208,6 @@ ARCHIVE is the string name of the package archive.")
 (require-package 'mwe-log-commands)
 (require-package 'page-break-lines)
 (require-package 'regex-tool)
-(require-package 'rinari)
 (require-package 'groovy-mode)
 (require-package 'ruby-compilation)
 (require-package 'emmet-mode)

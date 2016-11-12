@@ -12,11 +12,10 @@
   (simpleclip-set-contents msg))
 
 (defun cp-filename-of-current-buffer ()
-  "Copy file name (NOT full path) into the yank ring and OS clipboard"
+  "Copy file name (NOT full path) into the yank ring and OS clipboard."
   (interactive)
-  (let (filename)
-    (when buffer-file-name
-      (setq filename (file-name-nondirectory buffer-file-name))
+  (when buffer-file-name
+    (let* ((filename (file-name-nondirectory buffer-file-name)))
       (copy-yank-str filename)
       (message "filename %s => clipboard & yank ring" filename))))
 
@@ -82,7 +81,8 @@ If NUM equals 4, kill-ring => clipboard."
 (defun paste-from-x-clipboard(&optional n)
   "Paste string clipboard.
 If N is 1, we paste diff hunk whose leading char should be removed.
-If N is 2, paste into kill-ring too"
+If N is 2, paste into kill-ring too.
+If N is 3, converted dashed to camelcased then paste."
   (interactive "P")
   ;; paste after the cursor in evil normal state
   (when (and (functionp 'evil-normal-state-p)
@@ -91,7 +91,7 @@ If N is 2, paste into kill-ring too"
              (not (eolp))
              (not (eobp)))
     (forward-char))
-  (let ((str (simpleclip-get-contents)))
+  (let* ((str (simpleclip-get-contents)))
     (cond
      ((not n)
       ;; do nothing
@@ -99,7 +99,9 @@ If N is 2, paste into kill-ring too"
      ((= 1 n)
       (setq str (replace-regexp-in-string "^\\(+\\|-.*\\|@@ .*$\\)" "" str)))
      ((= 2 n)
-      (kill-new str)))
+      (kill-new str))
+     ((= 3 n)
+      (setq str (mapconcat (lambda (s) (capitalize s)) (split-string str "-") ""))))
     (insert str)))
 
 (provide 'init-clipboard)
