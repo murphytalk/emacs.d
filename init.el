@@ -163,8 +163,7 @@
   ;; It's dependent on init-site-lisp.el
   (setq my-custom-init "~/.emacs.d/custom.el")
   (if (file-exists-p my-custom-init)
-      (load-file my-custom-init))
-  (if (file-exists-p "~/.custom.el") (load-file "~/.custom.el")))
+      (load-file my-custom-init)))
 
 ;; @see https://www.reddit.com/r/emacs/comments/4q4ixw/how_to_forbid_emacs_to_touch_configuration_files/
 (setq custom-file (concat user-emacs-directory "custom-set-variables.el"))
