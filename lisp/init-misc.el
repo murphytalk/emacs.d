@@ -342,7 +342,9 @@ See \"Reusing passwords for several connections\" from INFO.
   (if (and (not (and buffer-file-name
                      (file-writable-p buffer-file-name)))
            ;; sudo edit only physical file
-           buffer-file-name)
+           buffer-file-name
+           ;; sudo edit only /etc/**/*
+           (string-match-p "^/etc/" buffer-file-name))
       (find-alternate-file (concat "/sudo:root@127.0.0.1:"
                                    buffer-file-name))))
 ;; }}
@@ -735,4 +737,113 @@ If step is -1, go backward."
       (message (format "%s => kill-ring&clipboard" rlt)))))
 ;; }}
 
+;; {{ perforce utilities
+(defvar p4-file-to-url '("" "")
+  "(car p4-file-to-url) is the original file prefix
+(cadr p4-file-to-url) is the url prefix")
+
+(defun p4-generate-cmd (opts)
+  (format "p4 %s %s"
+          opts
+          (replace-regexp-in-string (car p4-file-to-url)
+                                    (cadr p4-file-to-url)
+                                    buffer-file-name)))
+(defun p4edit ()
+  "p4 edit current file."
+  (interactive)
+  (shell-command (p4-generate-cmd "edit"))
+  (read-only-mode -1))
+
+(defun p4submit (&optional file-opened)
+  "p4 submit current file.
+If FILE-OPENED, current file is still opened."
+  (interactive "P")
+  (let* ((msg (read-string "Say (ENTER to abort):"))
+         (open-opts (if file-opened "-f leaveunchanged+reopen -r" ""))
+         (full-opts (format "submit -d '%s' %s" msg open-opts)))
+    ;; (message "(p4-generate-cmd full-opts)=%s" (p4-generate-cmd full-opts))
+    (if (string= "" msg)
+        (message "Abort submit.")
+      (shell-command (p4-generate-cmd full-opts))
+      (unless file-opened (read-only-mode 1))
+      (message (format "%s submitted."
+                       (file-name-nondirectory buffer-file-name))))))
+
+(defun p4revert ()
+  "p4 revert current file."
+  (interactive)
+  (shell-command (p4-generate-cmd "revert"))
+  (read-only-mode 1))
+;; }}
+
+(defun my-get-total-hours ()
+  (interactive)
+  (let* ((str (if (region-active-p) (my-selected-str)
+                (my-buffer-str)))
+         (total-hours 0)
+         (lines (split-string str "\n")))
+    (dolist (l lines)
+      (if (string-match " \\([0-9][0-9.]*\\)h[ \t]*$" l)
+          (setq total-hours (+ total-hours (string-to-number (match-string 1 l))))))
+    (message "total-hours=%s" total-hours)))
+
+;; {{ emmet (auto-complete html tags)
+;; @see https://github.com/rooney/zencoding for original tutorial
+;; @see https://github.com/smihica/emmet for new tutorial
+;; C-j or C-return to expand the line
+(add-hook 'html-mode-hook 'emmet-mode)
+(add-hook 'sgml-mode-hook 'emmet-mode)
+(add-hook 'web-mode-hook 'emmet-mode)
+(add-hook 'css-mode-hook  'emmet-mode)
+(add-hook 'rjsx-mode-hook  'emmet-mode)
+;; }}
+
+(autoload 'verilog-mode "verilog-mode" "Verilog mode" t )
+(add-to-list 'auto-mode-alist '("\\.[ds]?vh?\\'" . verilog-mode))
+
+;; {{ xterm
+(defun run-after-make-frame-hooks (frame)
+  (select-frame frame)
+  (unless window-system
+    ;; Mouse in a terminal (Use shift to paste with middle button)
+    (xterm-mouse-mode 1)))
+(add-hook 'after-make-frame-functions 'run-after-make-frame-hooks)
+;; }}
+
+;; flymake
+(setq flymake-gui-warnings-enabled nil)
+
+;; {{ check attachments
+(defun my-message-current-line-cited-p ()
+  "Indicate whether the line at point is a cited line."
+  (save-match-data
+    (string-match (concat "^" message-cite-prefix-regexp)
+                  (buffer-substring (line-beginning-position) (line-end-position)))))
+
+(defun my-message-says-attachment-p ()
+  "Return t if the message suggests there can be an attachment."
+  (save-excursion
+    (goto-char (point-min))
+    (save-match-data
+      (let (search-result)
+        (while
+            (and (setq search-result (re-search-forward "\\(attach\\|pdf\\|file\\|screen ?shot\\)" nil t))
+                 (my-message-current-line-cited-p)))
+        search-result))))
+
+(defun my-message-has-attachment-p ()
+  "Return t if the message has an attachment."
+  (save-excursion
+    (goto-char (point-min))
+    (save-match-data
+      (re-search-forward "<#part" nil t))))
+
+(defun my-message-pre-send-check-attachment ()
+  (when (and (my-message-says-attachment-p)
+             (not (my-message-has-attachment-p)))
+    (unless
+        (y-or-n-p "The message suggests that you may want to attach something, but no attachment is found. Send anyway?")
+      (error "It seems that an attachment is needed, but none was found. Aborting sending."))))
+(add-hook 'message-send-hook 'my-message-pre-send-check-attachment)
+;; }}
 (provide 'init-misc)

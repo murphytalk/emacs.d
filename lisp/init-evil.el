@@ -45,12 +45,16 @@
 (defun evil-surround-prog-mode-hook-setup ()
   (push '(47 . ("/" . "/")) evil-surround-pairs-alist)
   (push '(40 . ("(" . ")")) evil-surround-pairs-alist)
-  (push '(41 . ("(" . ")")) evil-surround-pairs-alist))
+  (push '(41 . ("(" . ")")) evil-surround-pairs-alist)
+  (push '(91 . ("[" . "]")) evil-surround-pairs-alist)
+  (push '(93 . ("[" . "]")) evil-surround-pairs-alist))
 (add-hook 'prog-mode-hook 'evil-surround-prog-mode-hook-setup)
 (defun evil-surround-emacs-lisp-mode-hook-setup ()
   (push '(?` . ("`" . "'")) evil-surround-pairs-alist))
 (add-hook 'emacs-lisp-mode-hook 'evil-surround-emacs-lisp-mode-hook-setup)
 (defun evil-surround-org-mode-hook-setup ()
+  (push '(91 . ("[" . "]")) evil-surround-pairs-alist)
+  (push '(93 . ("[" . "]")) evil-surround-pairs-alist)
   (push '(?= . ("=" . "=")) evil-surround-pairs-alist))
 (add-hook 'org-mode-hook 'evil-surround-org-mode-hook-setup)
 ;; }}
@@ -439,7 +443,6 @@ If the character before and after CH is space or tab, CH is NOT slash"
        "ln" 'highlight-symbol-nav-mode ; use M-n/M-p to navigation between symbols
        "bm" 'pomodoro-start ;; beat myself
        "ii" 'counsel-imenu-goto
-       "im" 'ido-imenu
        "ij" 'rimenu-jump
        "." 'evil-ex
        ;; @see https://github.com/pidu/git-timemachine
@@ -640,7 +643,7 @@ If the character before and after CH is space or tab, CH is NOT slash"
 
 ;; {{ Use `;` as leader key, for searching something
 (nvmap :prefix ";"
-       ";" 'avy-goto-subword-1
+       ";" 'avy-goto-char-timer ; input one or more characters
        "db" 'sdcv-search-pointer ; in buffer
        "dt" 'sdcv-search-input+ ;; in tip
        "dd" 'my-lookup-dict-org
