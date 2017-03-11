@@ -1,7 +1,8 @@
 ;;===========================================================================
 ;;{{{ Font/UI/layout
 
-(server-start)
+; only start server on windows
+(if *win64* (server-start))
 
 ;;===========================================================================
 (set-fontset-font "fontset-default"
