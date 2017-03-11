@@ -200,7 +200,11 @@
   (simpleclip-set-contents "testsimpleclip!")
   (string= "testsimpleclip!" (simpleclip-get-contents)))
 
+(if (version< emacs-version "25.1.1")
+    (message "ignoring test-simplecli")
 (setq simpleclip-works (test-simpleclip))
+)
+
 
 (defun my-gclip ()
   (if simpleclip-works (simpleclip-get-contents)
