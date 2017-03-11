@@ -39,6 +39,9 @@
                    (*linux* nil)
                    (t nil)))
 
+(setq *emacs24old*  (or (and (= emacs-major-version 24) (= emacs-minor-version 3))
+                        (not *emacs24*)))
+
 ;; *Message* buffer should be writable in 24.4+
 (defadvice switch-to-buffer (after switch-to-buffer-after-hack activate)
   (if (string= "*Messages*" (buffer-name))
@@ -55,8 +58,8 @@
   (require 'init-modeline)
   (require 'cl-lib)
   (require 'init-compat)
-  (require 'init-utils)
   (require 'init-site-lisp) ;; Must come before elpa, as it may provide package.el
+  (require 'init-utils)
 
   ;; Windows configuration, assuming that cygwin is installed at "c:/cygwin"
   ;; (condition-case nil
@@ -139,13 +142,13 @@
 
   ;; {{ idle require other stuff
   (setq idle-require-idle-delay 2)
-  (setq idle-require-symbols '(init-misc-lazy
+  (setq idle-require-symbols '(init-perforce
+                               init-misc-lazy
                                init-which-func
                                init-fonts
                                init-hs-minor-mode
                                init-writting
                                init-pomodoro
-                               init-emacspeak
                                init-artbollocks-mode
                                init-semantic))
   (idle-require-mode 1) ;; starts loading

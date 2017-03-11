@@ -284,13 +284,22 @@ Merge RLT and EXTRA-RLT, items in RLT has *higher* priority."
  ((not *no-memory*)
   (setq auto-mode-alist (cons '("\\.ts\\'" . js2-mode) auto-mode-alist))
   (setq auto-mode-alist (cons '("\\.js\\(\\.erb\\)?\\'" . js2-mode) auto-mode-alist))
-  (add-to-list 'auto-mode-alist '("components\\/.*\\.js\\'" . rjsx-mode))
+  (unless *emacs24old*
+    ;; facebook ReactJS, use Emacs25 to fix component indentation problem
+    ;; @see https://github.com/mooz/js2-mode/issues/291
+    (add-to-list 'auto-mode-alist '("\\.jsx\\'" . rjsx-mode))
+    (add-to-list 'auto-mode-alist '("components\\/.*\\.js\\'" . rjsx-mode)))
   (add-to-list 'auto-mode-alist '("\\.mock.js\\'" . js-mode))
-  (add-to-list 'auto-mode-alist '("\\.jsx\\'" . rjsx-mode))
   (add-to-list 'interpreter-mode-alist (cons "node" 'js2-mode)))
  (t
   (setq auto-mode-alist (cons '("\\.js\\(\\.erb\\)?\\'" . js-mode) auto-mode-alist))
   (setq auto-mode-alist (cons '("\\.ts\\'" . js-mode) auto-mode-alist))))
+(add-to-list 'auto-mode-alist '("\\.babelrc\\'" . js-mode))
+
+;; @see https://github.com/felipeochoa/rjsx-mode/issues/33
+(eval-after-load 'rjsx-mode
+  '(progn
+     (define-key rjsx-mode-map "<" nil)))
 
 ;; {{ js-beautify
 (defun js-beautify (&optional indent-size)
@@ -322,6 +331,13 @@ INDENT-SIZE decide the indentation level.
     (goto-char orig-point)))
 ;; }}
 
+;; {{ js-comint
+(defun js-clear-send-buffer ()
+  (interactive)
+  (js-clear)
+  (js-send-buffer))
+;; }}
+
 (setq-default js2-additional-externs
               '("$"
                 "$A" ; salesforce lightning component
@@ -336,7 +352,13 @@ INDENT-SIZE decide the indentation level.
                 "app"
                 "assert"
                 "assign"
+                "before"
                 "beforeEach"
+                "after"
+                "afterEach"
+                "documentRef"
+                "global"
+                "Blob"
                 "browser"
                 "by"
                 "clearInterval"
