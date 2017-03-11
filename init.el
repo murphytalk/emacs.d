@@ -117,7 +117,7 @@
   (require 'init-sh)
   (require 'init-ctags)
   (require 'init-bbdb)
-  (require 'init-gnus)
+;  (require 'init-gnus)
   (require 'init-lua-mode)
   (require 'init-workgroups2)
   (require 'init-term-mode)

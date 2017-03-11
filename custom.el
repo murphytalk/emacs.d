@@ -1,6 +1,8 @@
 ;;===========================================================================
 ;;{{{ Font/UI/layout
 
+(server-start)
+
 ;;===========================================================================
 (set-fontset-font "fontset-default"
 'gb18030 '("Microsoft YaHei" . "unicode-bmp"))
@@ -65,6 +67,37 @@
 ;;==========================================================================
 (load-file "~/.emacs.d/doremi.el")
 (load-file "~/.emacs.d/doremi-cmd.el")
+
+;;==========================================================================
+;;Additional modes
+;;==========================================================================
+(load-file "~/.emacs.d/lisp/screen-lines.el")
+(load-file "~/.emacs.d/lisp/moinmoin-mode.el")
+
+(require 'init-rtags)
+
+;;==========================================================================
+;;Override upstream configuration
+;;==========================================================================
+;; w3m search
+;; C-u S g RET <search term> RET in w3m
+(setq w3m-search-engine-alist
+      '(("g" "http://www.google.co.jp/search?q=%s" utf-8)
+        ;; stackoverflow search
+        ("q" "http://www.google.co.jp/search?q=%s+site:stackoverflow.com" utf-8)
+        ;; elisp code search
+        ("s" "http://www.google.co.jp/search?q=%s+filetype:el"  utf-8)
+        ;; wikipedia
+        ("w" "http://en.wikipedia.org/wiki/Special:Search?search=%s" utf-8)
+        ;; online dictionary
+        ("d" "http://dictionary.reference.com/search?q=%s" utf-8)
+        ;; java google search
+        ("java" "https://www.google.co.jp/search?q=java+%s" utf-8)
+        ;; financial dictionary
+        ("f" "http://financial-dictionary.thefreedictionary.com/%s" utf-8)
+        ;; javascript search on mozilla.orgb
+        ("j" "http://www.google.co.jp/search?q=%s+site:developer.mozilla.org" utf-8)))
+
 
 
 ;;==========================================================================
