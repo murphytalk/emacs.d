@@ -4,9 +4,6 @@
 ; only start server on windows
 (if *win64* (server-start))
 
-;;===========================================================================
-(set-fontset-font "fontset-default"
-'gb18030 '("Microsoft YaHei" . "unicode-bmp"))
 
 ;;===========================================================================
 ;;-----------------------------------------
@@ -36,8 +33,12 @@
 
 ;;-------------------------------------------
 ;; font
-(set-default-font "Consolas-10")
-(set-face-attribute 'default t :font "Consolas-10")
+(when (display-graphic-p)
+	(set-default-font "Consolas-10")
+	(set-face-attribute 'default t :font "Consolas-10")
+	(set-fontset-font "fontset-default"
+	'gb18030 '("Microsoft YaHei" . "unicode-bmp"))
+)
 ;;-------------------------------------------
 
 ;;---------------------------------------------------
