@@ -52,6 +52,20 @@
     (copy-yank-str (file-truename buffer-file-name))
     (message "file full path => clipboard & yank ring")))
 
+(defun kill-ring-to-clipboard ()
+  "Copy from `kill-ring' to clipboard."
+  (interactive)
+  (my-select-from-kill-ring (lambda (s)
+                              (let* ((summary (car s))
+                                     (hint " => clipboard" )
+                                     (msg (if (string-match-p "\.\.\.$" summary)
+                                              (substring summary 0 (- (length summary) (length hint)))
+                                            msg)))
+                                ;; cc actual string
+                                (my-pclip (cdr s))
+                                ;; echo
+                                (message "%s%s" msg hint)))))
+
 (defun copy-to-x-clipboard (&optional num)
   "If NUM equals 1, copy the downcased string.
 If NUM equals 2, copy the captalized string.
@@ -81,7 +95,8 @@ If NUM equals 4, kill-ring => clipboard."
   "Paste string clipboard.
 If N is 1, we paste diff hunk whose leading char should be removed.
 If N is 2, paste into kill-ring too.
-If N is 3, converted dashed to camelcased then paste."
+If N is 3, converted dashed to camelcased then paste.
+If N is 4, rectangle paste. "
   (interactive "P")
   ;; paste after the cursor in evil normal state
   (when (and (functionp 'evil-normal-state-p)
@@ -90,7 +105,8 @@ If N is 3, converted dashed to camelcased then paste."
              (not (eolp))
              (not (eobp)))
     (forward-char))
-  (let* ((str (my-gclip)))
+  (let* ((str (my-gclip))
+         (fn 'insert))
     (cond
      ((not n)
       ;; do nothing
@@ -100,7 +116,10 @@ If N is 3, converted dashed to camelcased then paste."
      ((= 2 n)
       (kill-new str))
      ((= 3 n)
-      (setq str (mapconcat (lambda (s) (capitalize s)) (split-string str "-") ""))))
-    (insert str)))
+      (setq str (mapconcat (lambda (s) (capitalize s)) (split-string str "-") "")))
+     ((= 4 n)
+      (setq fn 'insert-rectangle)
+      (setq str (split-string str "[\r]?\n"))))
+    (funcall fn str)))
 
 (provide 'init-clipboard)

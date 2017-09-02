@@ -49,6 +49,16 @@
   (push '(91 . ("[" . "]")) evil-surround-pairs-alist)
   (push '(93 . ("[" . "]")) evil-surround-pairs-alist))
 (add-hook 'prog-mode-hook 'evil-surround-prog-mode-hook-setup)
+
+(defun evil-surround-js-mode-hook-setup ()
+  ;; ES6
+  (push '(?1 . ("{`" . "`}")) evil-surround-pairs-alist)
+  (push '(?2 . ("${" . "}")) evil-surround-pairs-alist)
+  (push '(?4 . ("(e) => " . "(e)")) evil-surround-pairs-alist)
+  ;; ReactJS
+  (push '(?3 . ("classNames(" . ")")) evil-surround-pairs-alist))
+(add-hook 'js-mode-hook 'evil-surround-js-mode-hook-setup)
+
 (defun evil-surround-emacs-lisp-mode-hook-setup ()
   (push '(?` . ("`" . "'")) evil-surround-pairs-alist))
 (add-hook 'emacs-lisp-mode-hook 'evil-surround-emacs-lisp-mode-hook-setup)
@@ -74,6 +84,8 @@
     (evil-local-set-key 'normal "N" 'diff-file-next)
     (evil-local-set-key 'normal "q" 'ffip-diff-quit)
     (evil-local-set-key 'normal (kbd "RET") 'ffip-diff-find-file)
+    ;; "C-c C-a" is binding to `diff-apply-hunk' in `diff-mode'
+    (evil-local-set-key 'normal "a" 'ffip-diff-apply-hunk)
     (evil-local-set-key 'normal "o" 'ffip-diff-find-file))
 (add-hook 'ffip-diff-mode-hook 'ffip-diff-mode-hook-setup)
 
@@ -265,15 +277,25 @@ If the character before and after CH is space or tab, CH is NOT slash"
 (evil-declare-key 'normal org-mode-map
   "gh" 'outline-up-heading
   "gl" 'outline-next-visible-heading
+  "gj" 'outline-forward-same-level
+  "gk" 'outline-backward-same-level
   "$" 'org-end-of-line ; smarter behaviour on headlines etc.
   "^" 'org-beginning-of-line ; ditto
   "<" (lambda () (interactive) (org-demote-or-promote 1)) ; out-dent
   ">" 'org-demote-or-promote ; indent
   (kbd "TAB") 'org-cycle)
 
+(evil-declare-key 'normal markdown-mode-map
+  "gh" 'outline-up-heading
+  "gl" 'outline-next-visible-heading
+  "gj" 'outline-forward-same-level
+  "gk" 'outline-backward-same-level
+  (kbd "TAB") 'org-cycle)
+
+;; {{ specify major mode uses Evil (vim) NORMAL state or EMACS original state.
+;; You may delete this setup to use Evil NORMAL state always.
 (loop for (mode . state) in
       '((minibuffer-inactive-mode . emacs)
-        (ggtags-global-mode . emacs)
         (grep-mode . emacs)
         (Info-mode . emacs)
         (term-mode . emacs)
@@ -311,6 +333,7 @@ If the character before and after CH is space or tab, CH is NOT slash"
         (js2-error-buffer-mode . emacs)
         )
       do (evil-set-initial-state mode state))
+;; }}
 
 ;; I prefer Emacs way after pressing ":" in evil-mode
 (define-key evil-ex-completion-map (kbd "C-a") 'move-beginning-of-line)
@@ -365,7 +388,7 @@ If the character before and after CH is space or tab, CH is NOT slash"
        "em" 'erase-message-buffer
        "eb" 'eval-buffer
        "sd" 'sudo-edit
-       "sc" 'shell-command
+       "sc" 'scratch
        "ee" 'eval-expression
        "aa" 'copy-to-x-clipboard ; used frequently
        "aw" 'ace-swap-window
@@ -377,6 +400,7 @@ If the character before and after CH is space or tab, CH is NOT slash"
        "bs" '(lambda () (interactive) (goto-edge-by-comparing-font-face -1))
        "es" 'goto-edge-by-comparing-font-face
        "vj" 'my-validate-json-or-js-expression
+       "kc" 'kill-ring-to-clipboard
        "mcr" 'my-create-regex-from-kill-ring
        "ntt" 'neotree-toggle
        "ntf" 'neotree-find ; open file in current buffer in neotree
@@ -390,6 +414,7 @@ If the character before and after CH is space or tab, CH is NOT slash"
        "ff" 'toggle-full-window ;; I use WIN+F in i3
        "ip" 'find-file-in-project
        "kk" 'find-file-in-project-by-selected
+       "kn" 'find-file-with-similar-name ; ffip v5.3.1
        "fd" 'find-directory-in-project-by-selected
        "trm" 'get-term
        "tff" 'toggle-frame-fullscreen
@@ -414,13 +439,11 @@ If the character before and after CH is space or tab, CH is NOT slash"
        "mm" 'counsel-bookmark-goto
        "mk" 'bookmark-set
        "yy" 'counsel-browse-kill-ring
-       "gf" 'counsel-git-find-file
-       "gc" 'counsel-git-find-file-committed-with-line-at-point
-       "gl" 'counsel-git-grep-yank-line
-       "gg" 'counsel-git-grep-in-project ; quickest grep should be easy to press
-       "ga" 'counsel-git-grep-by-author
+       "gf" 'counsel-git ; find file
+       "gg" 'counsel-git-grep-by-selected ; quickest grep should be easy to press
        "gm" 'counsel-git-find-my-file
        "gs" 'ffip-show-diff ; find-file-in-project 5.0+
+       "gd" 'ffip-show-diff-by-description ;find-file-in-project 5.3.0+
        "sf" 'counsel-git-show-file
        "sh" 'my-select-from-search-text-history
        "df" 'counsel-git-diff-file
@@ -437,12 +460,14 @@ If the character before and after CH is space or tab, CH is NOT slash"
        "lq" 'highlight-symbol-query-replace
        "ln" 'highlight-symbol-nav-mode ; use M-n/M-p to navigation between symbols
        "bm" 'pomodoro-start ;; beat myself
-       "ii" 'counsel-imenu-goto
+       "ii" 'counsel-imenu
        "ij" 'rimenu-jump
        "." 'evil-ex
        ;; @see https://github.com/pidu/git-timemachine
        ;; p: previous; n: next; w:hash; W:complete hash; g:nth version; q:quit
-       "tt" 'my-git-timemachine
+       "tt" 'dumb-jump-go
+       "tb" 'dumb-jump-back
+       "tm" 'my-git-timemachine
        "tdb" 'tidy-buffer
        "tdl" 'tidy-current-line
        ;; toggle overview,  @see http://emacs.wordpress.com/2007/01/16/quick-and-dirty-code-folding/
@@ -459,7 +484,7 @@ If the character before and after CH is space or tab, CH is NOT slash"
        "cxr" 'org-clock-report ; `C-c C-x C-r'
        "qq" 'my-grep
        "xc" 'save-buffers-kill-terminal
-       "rr" 'counsel-recentf-goto
+       "rr" 'my-counsel-recentf
        "rh" 'counsel-yank-bash-history ; bash history command => yank-ring
        "rf" 'counsel-goto-recent-directory
        "da" 'diff-region-tag-selected-as-a
@@ -500,8 +525,9 @@ If the character before and after CH is space or tab, CH is NOT slash"
        "hf" 'find-function
        "hk" 'describe-key
        "hv" 'describe-variable
-       "gt" 'ggtags-find-tag-dwim
-       "gr" 'ggtags-find-reference
+       "gt" 'counsel-gtags-dwim ; jump from reference to definition or vice versa
+       "gr" 'counsel-gtags-find-symbol
+       "gu" 'counsel-gtags-update-tags
        "fb" 'flyspell-buffer
        "fe" 'flyspell-goto-next-error
        "fa" 'flyspell-auto-correct-word
@@ -511,6 +537,10 @@ If the character before and after CH is space or tab, CH is NOT slash"
        "bc" '(lambda () (interactive) (wxhelp-browse-class-or-api (thing-at-point 'symbol)))
        "oag" 'org-agenda
        "otl" 'org-toggle-link-display
+       "oa" '(lambda ()
+               (interactive)
+               (unless (featurep 'org) (require 'org))
+               (counsel-org-agenda-headlines))
        "om" 'toggle-org-or-message-mode
        "ut" 'undo-tree-visualize
        "ar" 'align-regexp
@@ -547,7 +577,7 @@ If the character before and after CH is space or tab, CH is NOT slash"
        "vs" 'git-gutter:stage-hunk
        "vr" 'git-gutter:revert-hunk
        "vl" 'vc-print-log
-       "vv" 'git-messenger:popup-message
+       "vv" 'vc-msg-show
        "v=" 'git-gutter:popup-hunk
        "hh" 'cliphist-paste-item
        "yu" 'cliphist-select-item
@@ -567,6 +597,8 @@ If the character before and after CH is space or tab, CH is NOT slash"
 ;; all keywords arguments are still supported
 (nvmap :prefix "SPC"
        "ss" 'wg-create-workgroup ; save windows layout
+       "se" 'evil-iedit-state/iedit-mode ; start iedit in emacs
+       "sc" 'shell-command
        "ll" 'my-wg-switch-workgroup ; load windows layout
        "kk" 'scroll-other-window
        "jj" 'scroll-other-window-up
@@ -598,7 +630,7 @@ If the character before and after CH is space or tab, CH is NOT slash"
        "ms" 'mc/skip-to-next-like-this
        "me" 'mc/edit-lines)
 
-;; per-major-mode leader setup
+;; per-major-mode setup
 (general-define-key :states '(normal motion insert emacs)
                     :keymaps 'js2-mode-map
                     :prefix "SPC"
@@ -637,11 +669,28 @@ If the character before and after CH is space or tab, CH is NOT slash"
                     "jk" 'js2r-kill)
 ;; }}
 
+;; Press `dd' to delete lines in `wgrep-mode' in evil directly
+(defadvice evil-delete (around evil-delete-hack activate)
+  ;; make buffer writable
+  (if (and (boundp 'wgrep-prepared) wgrep-prepared)
+      (wgrep-toggle-readonly-area))
+  ad-do-it
+  ;; make buffer read-only
+  (if (and (boundp 'wgrep-prepared) wgrep-prepared)
+      (wgrep-toggle-readonly-area)))
+
 ;; {{ Use `;` as leader key, for searching something
 (nvmap :prefix ";"
-       ";" 'avy-goto-char-timer ; input one or more characters
+       ;; Search character(s) at the beginning of word
+       ;; See https://github.com/abo-abo/avy/issues/70
+       ;; You can change the avy font-face in ~/.custom.el:
+       ;;  (eval-after-load 'avy
+       ;;   '(progn
+       ;;      (set-face-attribute 'avy-lead-face-0 nil :foreground "black")
+       ;;      (set-face-attribute 'avy-lead-face-0 nil :background "#f86bf3")))
+       ";" 'avy-goto-char-timer
        "db" 'sdcv-search-pointer ; in buffer
-       "dt" 'sdcv-search-input+ ;; in tip
+       "dt" 'sdcv-search-input+ ; in tip
        "dd" 'my-lookup-dict-org
        "dw" 'define-word
        "dp" 'define-word-at-point
@@ -721,6 +770,16 @@ If the character before and after CH is space or tab, CH is NOT slash"
 ;; If the align separator is / you will be prompted for a regular expression instead of a plain character.
 (require 'evil-lion)
 (evil-lion-install)
+;; }}
+
+;; {{ @see https://github.com/syl20bnr/spacemacs/blob/master/doc/DOCUMENTATION.org#replacing-text-with-iedit
+;; same keybindgs as spacemacs:
+;;  - "SPC s e" to start `iedit-mode'
+;;  - "TAB" to toggle current occurrence
+;;  - "n" next, "N" previous (obviously we use "p" for yank)
+;;  - "gg" the first occurence, "G" the last occurence
+;;  - Please note ";;" or `avy-goto-char-timer' is also useful
+(require 'evil-iedit-state)
 ;; }}
 
 (provide 'init-evil)
