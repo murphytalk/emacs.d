@@ -14,7 +14,6 @@
 
 (adjust-major-mode-keymap-with-evil "git-timemachine")
 (adjust-major-mode-keymap-with-evil "browse-kill-ring")
-(adjust-major-mode-keymap-with-evil "etags-select")
 
 (require 'evil)
 
@@ -296,6 +295,7 @@ If the character before and after CH is space or tab, CH is NOT slash"
 ;; You may delete this setup to use Evil NORMAL state always.
 (loop for (mode . state) in
       '((minibuffer-inactive-mode . emacs)
+        (calendar-mode . emacs)
         (grep-mode . emacs)
         (Info-mode . emacs)
         (term-mode . emacs)
@@ -329,7 +329,6 @@ If the character before and after CH is space or tab, CH is NOT slash"
         (magit-commit-mode . normal)
         (magit-diff-mode . normal)
         (browse-kill-ring-mode . normal)
-        (etags-select-mode . normal)
         (js2-error-buffer-mode . emacs)
         )
       do (evil-set-initial-state mode state))
@@ -344,10 +343,9 @@ If the character before and after CH is space or tab, CH is NOT slash"
 (define-key evil-normal-state-map "Y" (kbd "y$"))
 (define-key evil-normal-state-map "go" 'goto-char)
 (define-key evil-normal-state-map (kbd "M-y") 'counsel-browse-kill-ring)
-(define-key evil-normal-state-map (kbd "C-]") 'etags-select-find-tag-at-point)
-(define-key evil-visual-state-map (kbd "C-]") 'etags-select-find-tag-at-point)
-<<<<<<< HEAD
-=======
+(define-key evil-normal-state-map (kbd "C-]") 'mctags-find-tag-at-point)
+(define-key evil-visual-state-map (kbd "C-]") 'mctags-find-tag-at-point)
+>>>>>>> upstream/master
 (define-key evil-insert-state-map (kbd "C-x C-n") 'evil-complete-next-line)
 (define-key evil-insert-state-map (kbd "C-x C-p") 'evil-complete-previous-line)
 >>>>>>> upstream/master
@@ -407,7 +405,6 @@ If the character before and after CH is space or tab, CH is NOT slash"
        "ntd" 'neotree-project-dir
        "nth" 'neotree-hide
        "nts" 'neotree-show
-       "fl" 'cp-filename-line-number-of-current-buffer
        "fn" 'cp-filename-of-current-buffer
        "fp" 'cp-fullpath-of-current-buffer
        "dj" 'dired-jump ;; open the dired from current file
@@ -434,8 +431,7 @@ If the character before and after CH is space or tab, CH is NOT slash"
        "tua" 'artbollocks-mode
        "cby" 'cb-switch-between-controller-and-view
        "cbu" 'cb-get-url-from-controller
-       "ht" 'etags-select-find-tag-at-point ; better than find-tag C-]
-       "hp" 'etags-select-find-tag
+       "ht" 'mctags-find-tag-at-point ; better than find-tag C-]
        "mm" 'counsel-bookmark-goto
        "mk" 'bookmark-set
        "yy" 'counsel-browse-kill-ring
@@ -482,7 +478,7 @@ If the character before and after CH is space or tab, CH is NOT slash"
        "cxi" 'org-clock-in ; `C-c C-x C-i'
        "cxo" 'org-clock-out ; `C-c C-x C-o'
        "cxr" 'org-clock-report ; `C-c C-x C-r'
-       "qq" 'my-grep
+       "qq" 'mctags-grep
        "xc" 'save-buffers-kill-terminal
        "rr" 'my-counsel-recentf
        "rh" 'counsel-yank-bash-history ; bash history command => yank-ring
@@ -499,8 +495,10 @@ If the character before and after CH is space or tab, CH is NOT slash"
        "xe" 'eval-last-sexp
        "x0" 'delete-window
        "x1" 'delete-other-windows
-       "x2" 'split-window-vertically
-       "x3" 'split-window-horizontally
+       "x2" 'my-split-window-vertically
+       "x3" 'my-split-window-horizontally
+       "s2" 'ffip-split-window-vertically
+       "s3" 'ffip-split-window-horizontally
        "rw" 'rotate-windows
        "ru" 'undo-tree-save-state-to-register ; C-x r u
        "rU" 'undo-tree-restore-state-from-register ; C-x r U
@@ -535,7 +533,7 @@ If the character before and after CH is space or tab, CH is NOT slash"
        "ne" 'flymake-goto-next-error
        "fw" 'ispell-word
        "bc" '(lambda () (interactive) (wxhelp-browse-class-or-api (thing-at-point 'symbol)))
-       "oag" 'org-agenda
+       "og" 'org-agenda
        "otl" 'org-toggle-link-display
        "oa" '(lambda ()
                (interactive)
@@ -688,12 +686,12 @@ If the character before and after CH is space or tab, CH is NOT slash"
        ;;   '(progn
        ;;      (set-face-attribute 'avy-lead-face-0 nil :foreground "black")
        ;;      (set-face-attribute 'avy-lead-face-0 nil :background "#f86bf3")))
-       ";" 'avy-goto-char-timer
+       ";" 'avy-goto-char-2
+       "w" 'avy-goto-word-or-subword-1
+       "a" 'avy-goto-char-timer
        "db" 'sdcv-search-pointer ; in buffer
        "dt" 'sdcv-search-input+ ; in tip
        "dd" 'my-lookup-dict-org
-       "dw" 'define-word
-       "dp" 'define-word-at-point
        "mm" 'lookup-doc-in-man
        "gg" 'w3m-google-search
        "gf" 'w3m-google-by-filetype
@@ -780,6 +778,11 @@ If the character before and after CH is space or tab, CH is NOT slash"
 ;;  - "gg" the first occurence, "G" the last occurence
 ;;  - Please note ";;" or `avy-goto-char-timer' is also useful
 (require 'evil-iedit-state)
+;; }}
+
+;; {{ Evil’s f/F/t/T commands with Pinyin supptt,
+(require 'evil-find-char-pinyin)
+(evil-find-char-pinyin-mode 1)
 ;; }}
 
 (provide 'init-evil)
