@@ -6,10 +6,11 @@
 
 
 ;;===========================================================================
+
 ;;-----------------------------------------
-;;change application title format
+;;Title format : buffer name @ hostname 
 ;;------------------------------------------
-(setq frame-title-format "%b@emacs")
+(setq frame-title-format (concat "%b@" system-name))
 
 ;;turn off toolbar
 (tool-bar-mode 0)
