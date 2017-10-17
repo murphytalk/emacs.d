@@ -135,3 +135,8 @@
 			(find-file (getenv "ORGIDX"))))
 (global-set-key [f4] 'ibuffer)
 (global-set-key [(meta g)] 'goto-line)
+
+;;https://github.com/redguardtoo/elpa-mirror
+;;run M-x elpamr-create-mirror-for-installed
+;(add-to-list 'load-path "~/.emacs.d/site-lisp/elpa-mirror")
+;(require 'elpa-mirror)
