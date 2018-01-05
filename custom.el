@@ -34,9 +34,13 @@
 
 ;;-------------------------------------------
 ;; font
+(if (string= system-name "hp")
+  (setq my-font  "Monospace-11")
+  (setq my-font  "Consolas-10"))
+
 (when (display-graphic-p)
-	(set-default-font "Consolas-10")
-	(set-face-attribute 'default t :font "Consolas-10")
+	(set-default-font my-font)
+	(set-face-attribute 'default t :font my-font)
 	(set-fontset-font "fontset-default"
 	'gb18030 '("Microsoft YaHei" . "unicode-bmp"))
 )
