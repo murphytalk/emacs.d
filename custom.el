@@ -26,10 +26,10 @@
 ;;-------------------------------------------
 ;; color theme
 ;;-------------------------------------------
-(require 'color-theme)
-(color-theme-initialize)
+;(require 'color-theme)
+;(color-theme-initialize)
 ;(color-theme-robin-hood)
-(color-theme-ld-dark)
+;(color-theme-ld-dark)
 ;(abyss-theme)
 
 ;;-------------------------------------------
@@ -63,47 +63,42 @@
 (global-set-key [(control ?\% )] 'match-paren)
 
 
-
 ;;==========================================================================
-;;Do Re Mi
-;;https://www.emacswiki.org/emacs/DoReMi
-;;==========================================================================
-(load-file "~/.emacs.d/doremi.el")
-(load-file "~/.emacs.d/doremi-cmd.el")
-
-;;==========================================================================
-;;Additional modes
+;; MoinMoin mode
 ;;==========================================================================
 (load-file "~/.emacs.d/lisp/screen-lines.el")
 (load-file "~/.emacs.d/lisp/moinmoin-mode.el")
 
 
 ;;==========================================================================
-;;org publication
+;; org publication
 ;;==========================================================================
-(require 'ox-publish)
-;; Setup
-(setq org-base-dir "d:/DATA/Dropbox/org-mode/")
-(setq org-pub-dir "e:/download/html")
-(setq org-publish-project-alist
-  `(("org-files"
-     :base-directory "d:/DATA/Dropbox/org-mode/"
-     :base-extension "org"
-     :recursive t
-     :publishing-directory "e:/download/html"
-     :publishing-function org-html-publish-to-html
-     :headline-levels 4
-     :auto-preamble t
-     :html-head-extra "<link rel=\"stylesheet\" href=\"https://jgkamat.github.io/src/jgkamat.css\">"
-     )
-    ("static-files"
-     :base-directory "d:/DATA/Dropbox/org-mode/"
-     :base-extension "css\\|js\\|png\\|jpg\\|gif\\|pdf\\|mp3\\|ogg\\|swf"
-     :publishing-directory "e:/download/html"
-     :recursive t
-     :publishing-function org-publish-attachment
-     )
-    ("org" :components ("org-files" "static-files"))))
+(setq org-idx (getenv "ORGIDX"))
+(when (boundp 'org-idx)
+  (require 'ox-publish)
+  ;; Setup
+  (setq org-base-dir (file-name-directory org-idx))
+  (setq org-pub-dir (concat org-base-dir "html"))
+  (setq org-publish-project-alist
+        `(("org-files"
+           :base-directory  ,org-base-dir
+           :base-extension "org"
+           :recursive t
+           :publishing-directory ,org-pub-dir
+           :publishing-function org-html-publish-to-html
+           :headline-levels 4
+           :auto-preamble t
+           :html-head-extra "<link rel=\"stylesheet\" href=\"https://jgkamat.github.io/src/jgkamat.css\">"
+           )
+          ("static-files"
+           :base-directory ,org-base-dir
+           :base-extension "css\\|js\\|png\\|jpg\\|gif\\|pdf\\|mp3\\|ogg\\|swf"
+           :publishing-directory ,org-pub-dir
+           :recursive t
+           :publishing-function org-publish-attachment
+           )
+          ("org" :components ("org-files" "static-files"))))
+  )
 
 ;(require 'init-rtags)
 
@@ -134,7 +129,7 @@
 ;;==========================================================================
 ;;File/buffer name convention: this-is-a-post.rst
 ;;==========================================================================
-(defun murphy-blog-rst ()
+(defun my-blog-rst ()
   (interactive)
   (setq title (replace-regexp-in-string ".rst" "" (replace-regexp-in-string "-" " " (buffer-name))))
   (setq bar (make-string (length title) ?=))
@@ -161,7 +156,8 @@
 (global-set-key [f2] '(lambda()
 			(interactive)
 			(find-file (getenv "ORGIDX"))))
-(global-set-key [f4] 'ibuffer)
+(when (boundp 'org-idx)
+  (global-set-key [f4] 'ibuffer))
 (global-set-key [(meta g)] 'goto-line)
 
 ;;https://github.com/redguardtoo/elpa-mirror
