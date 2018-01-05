@@ -39,7 +39,7 @@ if no files marked, always operate on current line in dired-mode
     ad-do-it))
 
 (defadvice dired-guess-default (after dired-guess-default-after-hack activate)
-  (if (string-match-p "^mplayer -quiet" ad-return-value)
+  (if (and (stringp ad-return-value) (string-match-p "^mplayer -quiet" ad-return-value))
       (let* ((dir (file-name-as-directory (concat default-directory
                                                   "Subs")))
              basename)
@@ -72,7 +72,7 @@ if no files marked, always operate on current line in dired-mode
 (eval-after-load 'dired
   '(progn
      ;; @see https://emacs.stackexchange.com/questions/5649/sort-file-names-numbered-in-dired/5650#5650
-     (setq dired-listing-switches "-laGh1v --group-directories-first")
+     (setq dired-listing-switches "-laGh1v")
      ;; {{ @see https://oremacs.com/2017/03/18/dired-ediff/
      ;; -*- lexical-binding: t -*-
      (defun ora-ediff-files ()

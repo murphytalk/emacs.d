@@ -1,13 +1,14 @@
 ;; -*- coding: utf-8 -*-
 ;(defvar best-gc-cons-threshold gc-cons-threshold "Best default gc threshold value. Should't be too big.")
 
+
 ;; Added by Package.el.  This must come before configurations of
 ;; installed packages.  Don't delete this line.  If you don't want it,
 ;; just comment it out by adding a semicolon to the start of the line.
 ;; You may delete these explanatory comments.
 
 (setq proxy (getenv "emacs_http_proxy"))
-(if (boundp 'proxy) 
+(if (boundp 'proxy)
     ;;to evaluate variables in a list:
     ;;https://www.gnu.org/software/emacs/manual/html_node/elisp/Backquote.html
     (setq url-proxy-services
@@ -16,6 +17,10 @@
 )
 
 (package-initialize)
+
+(let ((minver "24.3"))
+  (when (version< emacs-version minver)
+    (error "This config requires Emacs v%s or higher" minver)))
 
 (defvar best-gc-cons-threshold 4000000 "Best default gc threshold value. Should't be too big.")
 ;; don't GC during startup to save time
