@@ -76,7 +76,35 @@
 (load-file "~/.emacs.d/lisp/screen-lines.el")
 (load-file "~/.emacs.d/lisp/moinmoin-mode.el")
 
-(require 'init-rtags)
+
+;;==========================================================================
+;;org publication
+;;==========================================================================
+(require 'ox-publish)
+;; Setup
+(setq org-base-dir "d:/DATA/Dropbox/org-mode/")
+(setq org-pub-dir "e:/download/html")
+(setq org-publish-project-alist
+  `(("org-files"
+     :base-directory "d:/DATA/Dropbox/org-mode/"
+     :base-extension "org"
+     :recursive t
+     :publishing-directory "e:/download/html"
+     :publishing-function org-html-publish-to-html
+     :headline-levels 4
+     :auto-preamble t
+     :html-head-extra "<link rel=\"stylesheet\" href=\"https://jgkamat.github.io/src/jgkamat.css\">"
+     )
+    ("static-files"
+     :base-directory "d:/DATA/Dropbox/org-mode/"
+     :base-extension "css\\|js\\|png\\|jpg\\|gif\\|pdf\\|mp3\\|ogg\\|swf"
+     :publishing-directory "e:/download/html"
+     :recursive t
+     :publishing-function org-publish-attachment
+     )
+    ("org" :components ("org-files" "static-files"))))
+
+;(require 'init-rtags)
 
 ;;==========================================================================
 ;;Override upstream configuration

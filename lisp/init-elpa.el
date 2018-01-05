@@ -9,7 +9,7 @@ But you may use safer HTTPS instead.")
 ;; Feel free to add more packages!
 (defvar melpa-include-packages
   '(ace-mc
-    bbdb
+;    bbdb
     dumb-jump
     color-theme
     js-doc
@@ -202,7 +202,7 @@ But you may use safer HTTPS instead.")
 (require-package 'swiper)
 (require-package 'counsel) ; counsel => swiper => ivy
 (require-package 'find-file-in-project)
-(require-package 'counsel-bbdb)
+;(require-package 'counsel-bbdb)
 (require-package 'elpy)
 (require-package 'hl-sexp)
 (require-package 'ibuffer-vc)
@@ -225,7 +225,7 @@ But you may use safer HTTPS instead.")
 (require-package 'cmake-mode)
 (require-package 'cpputils-cmake)
 (require-package 'flyspell-lazy)
-(require-package 'bbdb)
+;(require-package 'bbdb)
 (require-package 'pomodoro)
 (require-package 'flymake-lua)
 (require-package 'dropdown-list)
