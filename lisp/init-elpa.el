@@ -22,7 +22,7 @@ But you may use safer HTTPS instead.")
     robe
     groovy-mode
     inf-ruby
-    company ; I won't wait another 2 years for stable
+    ;; company ; I won't wait another 2 years for stable
     simple-httpd
     dsvn
     move-text
@@ -74,7 +74,7 @@ But you may use safer HTTPS instead.")
         ("melpa-stable" . "https://stable.melpa.org/packages/")))
 
 ;; Un-comment below line if your extract https://github.com/redguardtoo/myelpa/archive/master.zip into ~/myelpa/
-;; (setq package-archives '(("myelpa" . "~/myelpa")))
+;(setq package-archives '(("myelpa" . "~/.emacs.d/myelpa")))
 
 ;; Or Un-comment below line if you install package from https://github.com/redguardtoo/myelpa/
 ;; (setq package-archives '(("myelpa" . "https://raw.github.com/redguardtoo/myelpa/master/")))
@@ -249,6 +249,7 @@ But you may use safer HTTPS instead.")
 (require-package 'yasnippet)
 (require-package 'company)
 (require-package 'company-c-headers)
+(require-package 'elpy)
 (require-package 'legalese)
 (require-package 'simple-httpd)
 ;; (require-package 'git-gutter) ; use my patched version
@@ -265,5 +266,6 @@ But you may use safer HTTPS instead.")
 (require-package 'iedit)
 (require-package 'ace-pinyin)
 (require-package 'org-jira) ; @see https://github.com/ahungry/org-jira
+(require-package 'bash-completion)
 
 (provide 'init-elpa)

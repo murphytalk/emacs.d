@@ -1,8 +1,9 @@
 ;; @see https://bitbucket.org/lyro/evil/issue/360/possible-evil-search-symbol-forward
 ;; evil 1.0.8 search word instead of symbol
 (setq evil-symbol-word-search t)
-;; load undo-tree and ert
-(add-to-list 'load-path "~/.emacs.d/site-lisp/evil/lib")
+(require 'undo-tree)
+;; For the motions g; g, and for the last-change-register ., 
+(require 'goto-chg)
 
 ;; @see https://bitbucket.org/lyro/evil/issue/511/let-certain-minor-modes-key-bindings
 (defmacro adjust-major-mode-keymap-with-evil (m &optional r)
@@ -315,6 +316,7 @@ If the character before and after CH is space or tab, CH is NOT slash"
         (eshell-mode . emacs)
         (shell-mode . emacs)
         ;;(message-mode . emacs)
+        (epa-key-list-mode . emacs)
         (fundamental-mode . emacs)
         (weibo-timeline-mode . emacs)
         (weibo-post-mode . emacs)
@@ -343,12 +345,10 @@ If the character before and after CH is space or tab, CH is NOT slash"
 (define-key evil-normal-state-map "Y" (kbd "y$"))
 (define-key evil-normal-state-map "go" 'goto-char)
 (define-key evil-normal-state-map (kbd "M-y") 'counsel-browse-kill-ring)
-(define-key evil-normal-state-map (kbd "C-]") 'mctags-find-tag-at-point)
-(define-key evil-visual-state-map (kbd "C-]") 'mctags-find-tag-at-point)
->>>>>>> upstream/master
+(define-key evil-normal-state-map (kbd "C-]") 'counsel-etags-find-tag-at-point)
+(define-key evil-visual-state-map (kbd "C-]") 'counsel-etags-find-tag-at-point)
 (define-key evil-insert-state-map (kbd "C-x C-n") 'evil-complete-next-line)
 (define-key evil-insert-state-map (kbd "C-x C-p") 'evil-complete-previous-line)
->>>>>>> upstream/master
 
 (require 'evil-matchit)
 (global-evil-matchit-mode 1)
@@ -431,7 +431,7 @@ If the character before and after CH is space or tab, CH is NOT slash"
        "tua" 'artbollocks-mode
        "cby" 'cb-switch-between-controller-and-view
        "cbu" 'cb-get-url-from-controller
-       "ht" 'mctags-find-tag-at-point ; better than find-tag C-]
+       "ht" 'counsel-etags-find-tag-at-point ; better than find-tag C-]
        "mm" 'counsel-bookmark-goto
        "mk" 'bookmark-set
        "yy" 'counsel-browse-kill-ring
@@ -478,7 +478,7 @@ If the character before and after CH is space or tab, CH is NOT slash"
        "cxi" 'org-clock-in ; `C-c C-x C-i'
        "cxo" 'org-clock-out ; `C-c C-x C-o'
        "cxr" 'org-clock-report ; `C-c C-x C-r'
-       "qq" 'mctags-grep
+       "qq" 'counsel-etags-grep
        "xc" 'save-buffers-kill-terminal
        "rr" 'my-counsel-recentf
        "rh" 'counsel-yank-bash-history ; bash history command => yank-ring

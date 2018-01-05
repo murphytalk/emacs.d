@@ -6,10 +6,11 @@
 
 
 ;;===========================================================================
+
 ;;-----------------------------------------
-;;change application title format
+;;Title format : buffer name @ hostname 
 ;;------------------------------------------
-(setq frame-title-format "%b@emacs")
+(setq frame-title-format (concat "%b@" system-name))
 
 ;;turn off toolbar
 (tool-bar-mode 0)
@@ -162,3 +163,8 @@
 			(find-file (getenv "ORGIDX"))))
 (global-set-key [f4] 'ibuffer)
 (global-set-key [(meta g)] 'goto-line)
+
+;;https://github.com/redguardtoo/elpa-mirror
+;;run M-x elpamr-create-mirror-for-installed
+;(add-to-list 'load-path "~/.emacs.d/site-lisp/elpa-mirror")
+;(require 'elpa-mirror)
