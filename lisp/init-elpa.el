@@ -6,10 +6,10 @@
 ;; Feel free to add more packages!
 (defvar melpa-include-packages
   '(ace-mc
-    ace-window ; lastest stable is released on year 2014
+    ace-window               ; lastest stable is released on year 2014
     bbdb
     dumb-jump
-    websocket ; to talk to the browser
+    websocket                           ; to talk to the browser
     color-theme
     evil-exchange
     evil-find-char-pinyin
@@ -19,7 +19,7 @@
     lispy
     lispyville
     js-doc
-    jss ; remote debugger of browser
+    jss                                 ; remote debugger of browser
     ;; {{ since stable v0.9.1 released, we go back to stable version
     ;; ivy
     ;; counsel
@@ -33,11 +33,11 @@
     simple-httpd
     dsvn
     move-text
-    string-edit ; looks magnars don't update stable tag frequently
+    string-edit     ; looks magnars don't update stable tag frequently
     findr
     mwe-log-commands
     yaml-mode
-    counsel-gtags ; the stable version is never released
+    counsel-gtags               ; the stable version is never released
     noflet
     db
     package-lint
@@ -68,6 +68,7 @@
     erlang
     workgroups2
     zoutline
+    lsp-mode
     company-c-headers)
   "Don't install any Melpa packages except these packages")
 
@@ -275,16 +276,16 @@
 (require-package 'undo-tree)
 (require-package 'lispy)
 (require-package 'lispyville)
-(require-package 'evil)
-(require-package 'evil-escape)
-(require-package 'evil-exchange)
-(require-package 'evil-find-char-pinyin)
-(require-package 'evil-iedit-state)
-(require-package 'evil-mark-replace)
-(require-package 'evil-matchit)
-(require-package 'evil-nerd-commenter)
-(require-package 'evil-surround)
-(require-package 'evil-visualstar)
+;;(require-package 'evil)
+;;(require-package 'evil-escape)
+;;(require-package 'evil-exchange)
+;;(require-package 'evil-find-char-pinyin)
+;;(require-package 'evil-iedit-state)
+;;(require-package 'evil-mark-replace)
+;;(require-package 'evil-matchit)
+;;(require-package 'evil-nerd-commenter)
+;;(require-package 'evil-surround)
+;;(require-package 'evil-visualstar)
 
 
 (provide 'init-elpa)

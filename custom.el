@@ -1,8 +1,5 @@
 ;;===========================================================================
-;;{{{ Font/UI/layout
-
-; only start server on windows
-(if *win64* (server-start))
+(server-start)
 
 
 ;;===========================================================================
@@ -10,7 +7,7 @@
 ;;-----------------------------------------
 ;;Title format : buffer name @ hostname 
 ;;------------------------------------------
-(setq frame-title-format (concat "%b@" system-name))
+(setq frame-title-format (concat "%b@emacs." system-name))
 
 ;;turn off toolbar
 (tool-bar-mode 0)
@@ -33,12 +30,16 @@
 ;(abyss-theme)
 
 ;;-------------------------------------------
-;; font
+;; GUI font
 (when (display-graphic-p)
-	(set-default-font "Consolas-10")
-	(set-face-attribute 'default t :font "Consolas-10")
-	(set-fontset-font "fontset-default"
-	'gb18030 '("Microsoft YaHei" . "unicode-bmp"))
+  (if *win64*
+    (setq my-font "Consolas-10")
+    (setq my-font "Inconsolata-11")
+  )
+  (set-default-font )
+  (set-face-attribute 'default t :font my-font)
+  (set-fontset-font "fontset-default"
+                    'gb18030 '("Microsoft YaHei" . "unicode-bmp"))
 )
 ;;-------------------------------------------
 
@@ -55,8 +56,8 @@
   "Go to the matching paren if on a paren; otherwise insert %."
   (interactive "p")
   (cond ((looking-at "\\s\(") (forward-list 1) (backward-char 1))
-	((looking-at "\\s\)") (forward-char 1) (backward-list 1))
-	(t (self-insert-command (or arg 1)))))
+    ((looking-at "\\s\)") (forward-char 1) (backward-list 1))
+    (t (self-insert-command (or arg 1)))))
 
 ;;and bind it to Ctrl-% key
 ;(global-set-key "%" 'match-paren)
@@ -100,7 +101,23 @@
           ("org" :components ("org-files" "static-files"))))
   )
 
-;(require 'init-rtags)
+;;==========================================================================
+;; cscope and cquery
+;;==========================================================================
+(load-file "~/.emacs.d/lisp/xcscope.el")
+(require 'xscope)
+(cscope-setup)
+(add-hook 'python-mode-hook (function cscope-minor-mode))
+(setq cscope-option-do-not-update-database 't)
+
+;; for cquery
+(if (executable-find "cqeury") (setq *has-cquery* 't))
+(when *has-cquery*
+  (require 'cquery))
+
+(when (or *emacs25* (and *emacs24* (not *emacs24old)))
+  (superword-mode t))
+
 
 ;;==========================================================================
 ;;Override upstream configuration
@@ -150,14 +167,14 @@
   )
 
 ;;===========================================================================
-;;{{{ Keys mapping
+;; Keys mapping
 ;;===========================================================================
 (global-set-key [(control -)] 'set-mark-command)
-(global-set-key [f2] '(lambda()
-			(interactive)
-			(find-file (getenv "ORGIDX"))))
 (when (boundp 'org-idx)
-  (global-set-key [f4] 'ibuffer))
+  (global-set-key [f2] '(lambda()
+            (interactive)
+            (find-file (getenv "ORGIDX")))))
+(global-set-key [f4] 'ibuffer)
 (global-set-key [(meta g)] 'goto-line)
 
 ;;https://github.com/redguardtoo/elpa-mirror

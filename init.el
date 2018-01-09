@@ -62,6 +62,10 @@
   (setq gc-cons-percentage 0.5)
   (run-with-idle-timer 5 t #'garbage-collect))
 
+(when *unix*
+  (setq *use-cmake* (or (file-executable-p "/usr/bin/cmake") (file-executable-p "/usr/local/bin/cmake")) )
+  )
+
 ;; *Message* buffer should be writable in 24.4+
 (defadvice switch-to-buffer (after switch-to-buffer-after-hack activate)
   (if (string= "*Messages*" (buffer-name))
@@ -111,7 +115,7 @@
   (require 'init-sessions)
   (require 'init-git)
   (require 'init-markdown)
-  (require 'init-erlang)
+  ;; (require 'init-erlang)
   (require 'init-javascript)
   (require 'init-org)
   (require 'init-css)
@@ -134,9 +138,9 @@
 ;  (require 'init-evil)
   (require 'init-multiple-cursors)
   (require 'init-sh)
-  (require 'init-ctags)
-  (require 'init-bbdb)
-;  (require 'init-gnus)
+  ;; (require 'init-ctags)
+  ;; (require 'init-bbdb)
+  ;; (require 'init-gnus)
   (require 'init-lua-mode)
   (require 'init-workgroups2)
   (require 'init-term-mode)
