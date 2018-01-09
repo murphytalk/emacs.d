@@ -36,7 +36,7 @@
     (setq my-font "Consolas-10")
     (setq my-font "Inconsolata-11")
   )
-  (set-default-font )
+  (set-default-font my-font)
   (set-face-attribute 'default t :font my-font)
   (set-fontset-font "fontset-default"
                     'gb18030 '("Microsoft YaHei" . "unicode-bmp"))
@@ -105,13 +105,13 @@
 ;; cscope and cquery
 ;;==========================================================================
 (load-file "~/.emacs.d/lisp/xcscope.el")
-(require 'xscope)
+(require 'xcscope)
 (cscope-setup)
 (add-hook 'python-mode-hook (function cscope-minor-mode))
 (setq cscope-option-do-not-update-database 't)
 
 ;; for cquery
-(if (executable-find "cqeury") (setq *has-cquery* 't))
+(setq *has-cquery* (executable-find "cquery"))
 (when *has-cquery*
   (require 'cquery))
 
