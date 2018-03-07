@@ -12,6 +12,6 @@ if [ $? -ne 0 ];then
 fi
 
 git fetch upstream
-git checkout master
+git checkout $SYNC_TO
 
 git merge upstream/master
