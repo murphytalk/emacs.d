@@ -102,22 +102,27 @@
   )
 
 ;;==========================================================================
-;; cscope and cquery
+;; Code parser
 ;;==========================================================================
-(load-file "~/.emacs.d/lisp/xcscope.el")
-(require 'xcscope)
-(cscope-setup)
-(add-hook 'python-mode-hook (function cscope-minor-mode))
-(setq cscope-option-do-not-update-database 't)
+;; for cscope
+(setq *has-cscope* (not (equal nil (executable-find "cscope"))))
+(when *has-cscope*
+  (load-file "~/.emacs.d/lisp/xcscope.el")
+  (require 'xcscope)
+  (cscope-setup)
+  (add-hook 'python-mode-hook (function cscope-minor-mode))
+  (setq cscope-option-do-not-update-database 't))
 
 ;; for cquery
-(setq *has-cquery* (executable-find "cquery"))
+(setq *has-cquery* (not (equal nil (executable-find "cquery"))))
 (when *has-cquery*
   (require 'cquery))
 
+;;==========================================================================
+;; Emacs version compatability
+;;==========================================================================
 (when (or *emacs25* (and *emacs24* (not *emacs24old)))
   (superword-mode t))
-
 
 ;;==========================================================================
 ;;Override upstream configuration
