@@ -51,6 +51,7 @@
                    (*linux* nil)
                    (t nil)))
 
+;; emacs 24.3-
 (setq *emacs24old*  (or (and (= emacs-major-version 24) (= emacs-minor-version 3))
                         (not *emacs24*)))
 
@@ -112,7 +113,6 @@
   (require 'init-ivy)
   (require 'init-hippie-expand)
   (require 'init-windows)
-  (require 'init-sessions)
   (require 'init-git)
   (require 'init-markdown)
   ;; (require 'init-erlang)

@@ -75,7 +75,7 @@
 ;; org publication
 ;;==========================================================================
 (setq org-idx (getenv "ORGIDX"))
-(when (boundp 'org-idx)
+(when (not (equal nil org-idx))
   (require 'ox-publish)
   ;; Setup
   (setq org-base-dir (file-name-directory org-idx))
@@ -175,10 +175,10 @@
 ;; Keys mapping
 ;;===========================================================================
 (global-set-key [(control -)] 'set-mark-command)
-(when (boundp 'org-idx)
+(when (not (equal nil org-idx))
   (global-set-key [f2] '(lambda()
             (interactive)
-            (find-file (getenv "ORGIDX")))))
+            (find-file org-idx))))
 (global-set-key [f4] 'ibuffer)
 (global-set-key [(meta g)] 'goto-line)
 
