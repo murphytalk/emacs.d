@@ -13,6 +13,8 @@
 (tool-bar-mode 0)
 ;;turn off menubar
 (menu-bar-mode 0)
+;;use visual bell
+(setq visible-bell 1)
 
 ;;-------------------------------------------
 ;; save emacs custom craps in another file
