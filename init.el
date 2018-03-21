@@ -63,8 +63,8 @@
   (setq gc-cons-percentage 0.5)
   (run-with-idle-timer 5 t #'garbage-collect))
 
-(when *unix*
-  (setq *use-cmake* (or (file-executable-p "/usr/bin/cmake") (file-executable-p "/usr/local/bin/cmake")) )
+(when (or *unix* *is-a-mac*)
+  (setq *use-cmake* (not (equal nil (executable-find "cmake"))))
   )
 
 ;; *Message* buffer should be writable in 24.4+
