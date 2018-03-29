@@ -80,6 +80,7 @@
     pomodoro
     auto-compile
     packed
+    keyfreq
     gitconfig-mode
     textile-mode
     w3m
@@ -87,7 +88,8 @@
     workgroups2
     zoutline
     lsp-mode
-    company-c-headers)
+    company-c-headers
+    company-statistics)
   "Packages to install from melpa-unstable.")
 
 (defvar melpa-stable-banned-packages nil
@@ -98,11 +100,11 @@
 (setq package-archives
       '(;; uncomment below line if you need use GNU ELPA
         ;; ("gnu" . "https://elpa.gnu.org/packages/")
-        ;; ("localelpa" . "~/.emacs.d/localelpa/")
+        ("localelpa" . "~/.emacs.d/localelpa/")
         ;; ("my-js2-mode" . "https://raw.githubusercontent.com/redguardtoo/js2-mode/release/") ; github has some issue
         ;; {{ backup repositories
-        ;; ("melpa" . "http://mirrors.163.com/elpa/melpa/")
-        ;; ("melpa-stable" . "http://mirrors.163.com/elpa/melpa-stable/")
+        ;; ("melpa" . "https://mirrors.163.com/elpa/melpa/")
+        ;; ("melpa-stable" . "https://mirrors.163.com/elpa/melpa-stable/")
         ;; }}
         ("melpa" . "https://melpa.org/packages/")
         ("melpa-stable" . "https://stable.melpa.org/packages/")
@@ -265,6 +267,7 @@
 (require-package 'yasnippet)
 (require-package 'company)
 (require-package 'company-c-headers)
+(require-package 'company-statistics)
 (require-package 'elpy)
 (require-package 'legalese)
 (require-package 'simple-httpd)
@@ -295,9 +298,11 @@
 (require-package 'evil-nerd-commenter)
 (require-package 'evil-surround)
 (require-package 'evil-visualstar)
+(require-package 'evil-lion)
 (require-package 'slime)
 (require-package 'counsel-css)
 (require-package 'auto-package-update)
+(require-package 'keyfreq)
 ;; {{ @see https://pawelbx.github.io/emacs-theme-gallery/
 (when *emacs24* (require-package 'color-theme))
 (when *emacs25*

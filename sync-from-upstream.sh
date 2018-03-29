@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 if [[ $USER == "murphy" ]];then
-    SYNC_TO=master
+    SYNC_TO=merge
 else
     SYNC_TO=for_upstream_merge
 fi

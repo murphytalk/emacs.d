@@ -105,7 +105,7 @@
 ;; }}
 
 ;; {{ https://github.com/browse-kill-ring/browse-kill-ring
-(require 'browse-kill-ring)
+(local-require 'browse-kill-ring)
 ;; no duplicates
 (setq browse-kill-ring-display-style 'one-line
       browse-kill-ring-display-duplicates nil
@@ -178,7 +178,7 @@
 (add-hook 'comint-output-filter-functions 'comint-watch-for-password-prompt)
 
 ;; {{ which-key-mode
-(require 'which-key)
+(local-require 'which-key)
 (setq which-key-allow-imprecise-window-fit t) ; performance
 (setq which-key-separator ":")
 (which-key-mode 1)
@@ -379,7 +379,7 @@ See \"Reusing passwords for several connections\" from INFO.
 ;; {{ show email sent by `git send-email' in gnus
 (eval-after-load 'gnus
   '(progn
-     (require 'gnus-article-treat-patch)
+     (local-require 'gnus-article-treat-patch)
      (setq gnus-article-patch-conditions
            '( "^@@ -[0-9]+,[0-9]+ \\+[0-9]+,[0-9]+ @@" ))
      ))
@@ -399,11 +399,8 @@ See \"Reusing passwords for several connections\" from INFO.
   (interactive)
   (let ((dir (expand-file-name default-directory)))
     (if (not (memq dir load-path))
-        (add-to-list 'load-path dir)
-      )
-    (message "Directory added into load-path:%s" dir)
-    )
-  )
+        (add-to-list 'load-path dir))
+    (message "Directory added into load-path:%s" dir)))
 
 (setq system-time-locale "C")
 
@@ -496,7 +493,7 @@ See \"Reusing passwords for several connections\" from INFO.
 (global-set-key (kbd "C-x o") 'ace-window)
 
 ;; {{ move focus between sub-windows
-(require 'window-numbering)
+(local-require 'window-numbering)
 (custom-set-faces '(window-numbering-face ((t (:foreground "DeepPink" :underline "DeepPink" :weight bold)))))
 (window-numbering-mode 1)
 ;; }}
@@ -675,7 +672,6 @@ If no region is selected. You will be asked to use `kill-ring' or clipboard inst
                      ((string= choice "kill-ring")
                       (car kill-ring))
                      ((string= choice "clipboard")
-                      (unless (featurep 'simpleclip) (require 'simpleclip))
                       (my-gclip)))))
           (with-temp-file fb
             (insert txt)))))
@@ -738,11 +734,12 @@ If no region is selected. You will be asked to use `kill-ring' or clipboard inst
   (setq indent-tabs-mode (not indent-tabs-mode))
   (message "indent-tabs-mode=%s" indent-tabs-mode))
 
-;;; {{ auto-save.el
-;(require 'auto-save)
+;; {{ auto-save.el
+;(local-require 'auto-save)
+;(add-to-list 'auto-save-exclude 'file-too-big-p t)
 ;(auto-save-enable)
 ;(setq auto-save-slient t)
-;;; }}
+;; }}
 
 ;; {{ csv
 (add-auto-mode 'csv-mode "\\.[Cc][Ss][Vv]\\'")
@@ -885,7 +882,7 @@ If no region is selected. You will be asked to use `kill-ring' or clipboard inst
 ;; }}
 
 ;; {{
-(require 'typewriter-mode)
+(local-require 'typewriter-mode)
 (defun toggle-typewriter ()
   "Turn on/off typewriter."
   (interactive)
@@ -930,6 +927,17 @@ If no region is selected. You will be asked to use `kill-ring' or clipboard inst
 (setq session-save-file (expand-file-name "~/.emacs.d/.session"))
 (add-hook 'after-init-hook 'session-initialize)
 ;; }}
+
+(defun optimize-emacs-startup ()
+  "Speedup emacs startup by compiling."
+  (interactive)
+  (let* ((dir (file-truename "~/.emacs.d/lisp/"))
+         (files (directory-files dir)))
+    (load (file-truename "~/.emacs.d/init.el"))
+    (dolist (f files)
+      (when (string-match-p ".*\.el$" f)
+        (let* ((default-directory dir))
+          (byte-compile-file (file-truename f) t))))))
 
 ;; random color theme
 (defun random-color-theme ()
