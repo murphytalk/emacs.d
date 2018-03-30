@@ -36,9 +36,12 @@
 ;; GUI font
 (when (display-graphic-p)
   (if *win64*
-    (setq my-font "Consolas-10")
-    (setq my-font "Inconsolata-11")
-  )
+      (setq my-font "Consolas-10")
+      (if *is-a-mac*
+        (setq my-font "Monaco-11")
+        (setq my-font "Inconsolata-11")
+      )
+      )
   (set-default-font my-font)
   (set-face-attribute 'default t :font my-font)
   (set-fontset-font "fontset-default"
