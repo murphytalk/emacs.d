@@ -24,6 +24,10 @@
 
 ;;-------------------------------------------
 ;; GUI font
+;(load-theme 'gruber-darker 't)
+(load-theme 'molokai 't)
+;(load-theme 'busybee 't)
+
 (when (display-graphic-p)
   (if *win64*
       (setq my-font "Consolas-10")
