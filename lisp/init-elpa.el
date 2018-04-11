@@ -107,15 +107,13 @@
         ;; ("melpa-stable" . "https://mirrors.163.com/elpa/melpa-stable/")
         ;; }}
         ("melpa" . "https://melpa.org/packages/")
-        ("melpa-stable" . "https://stable.melpa.org/packages/")
-        ))
+        ("melpa-stable" . "https://stable.melpa.org/packages/")))
 
 ;; Un-comment below line if you follow "Install stable version in easiest way"
 ;; (setq package-archives '(("myelpa" . "~/projs/myelpa")))
 (setq my-local-elpa-repo "~/pkg/myelpa-master")
 (when (file-accessible-directory-p  my-local-elpa-repo)
-    (setq package-archives `(("myelpa" . ,my-local-elpa-repo)))
-  )
+  (setq package-archives `(("myelpa" . ,my-local-elpa-repo))))
 
 ;;------------------------------------------------------------------------------
 ;; Internal implementation, newbies should NOT touch code below this line!
