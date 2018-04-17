@@ -928,16 +928,37 @@ If no region is selected. You will be asked to use `kill-ring' or clipboard inst
 (add-hook 'after-init-hook 'session-initialize)
 ;; }}
 
-(defun optimize-emacs-startup ()
-  "Speedup emacs startup by compiling."
-  (interactive)
-  (let* ((dir (file-truename "~/.emacs.d/lisp/"))
-         (files (directory-files dir)))
-    (load (file-truename "~/.emacs.d/init.el"))
-    (dolist (f files)
-      (when (string-match-p ".*\.el$" f)
-        (let* ((default-directory dir))
-          (byte-compile-file (file-truename f) t))))))
+;; {{
+(add-to-list 'auto-mode-alist '("\\.adoc\\'" . adoc-mode))
+(defun adoc-imenu-index ()
+  (let* ((patterns '((nil "^=\\([= ]*[^=\n\r]+\\)" 1))))
+    (save-excursion
+      (imenu--generic-function patterns))))
+
+(defun adoc-mode-hook-setup ()
+  ;; don't wrap lines because there is table in `adoc-mode'
+  (setq truncate-lines t)
+  (setq imenu-create-index-function 'adoc-imenu-index))
+(add-hook 'adoc-mode-hook 'adoc-mode-hook-setup)
+;; }}
+
+(eval-after-load 'compile
+  '(progn
+     (add-to-list 'compilation-error-regexp-alist-alist
+                  (list 'mocha "at [^()]+ (\\([^:]+\\):\\([^:]+\\):\\([^:]+\\))" 1 2 3))
+     (add-to-list 'compilation-error-regexp-alist 'mocha)))
+
+;; ;; useless and hard to debug
+;; (defun optimize-emacs-startup ()
+;;   "Speedup emacs startup by compiling."
+;;   (interactive)
+;;   (let* ((dir (file-truename "~/.emacs.d/lisp/"))
+;;          (files (directory-files dir)))
+;;     (load (file-truename "~/.emacs.d/init.el"))
+;;     (dolist (f files)
+;;       (when (string-match-p ".*\.el$" f)
+;;         (let* ((default-directory dir))
+;;           (byte-compile-file (file-truename f) t))))))
 
 ;; random color theme
 (defun random-color-theme ()
