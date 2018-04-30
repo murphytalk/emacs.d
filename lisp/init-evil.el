@@ -327,6 +327,7 @@ If the character before and after CH is space or tab, CH is NOT slash"
         (compilation-mode . emacs)
         (speedbar-mode . emacs)
         (ivy-occur-mode . emacs)
+        (ivy-occur-grep-mode . normal)
         (messages-buffer-mode . normal)
         (magit-commit-mode . normal)
         (magit-diff-mode . normal)
@@ -381,9 +382,9 @@ If the character before and after CH is space or tab, CH is NOT slash"
       (setq isearch-forward t)
       ;; if imenu is available, try it
       (cond
-       ((and (memq major-mode '(js2-mode rjsx-mode))
+       ((and (derived-mode-p 'js2-mode)
              (or (null (get-text-property (point) 'face))
-                 (font-belongs-to (point) '(rjsx-tag js2-function-call))))
+                 (font-belongs-to (point) '(rjsx-tag))))
         (js2-jump-to-definition))
        ((fboundp 'imenu--make-index-alist)
         (condition-case nil
@@ -462,6 +463,7 @@ If the character before and after CH is space or tab, CH is NOT slash"
        "fp" 'cp-fullpath-of-current-buffer
        "dj" 'dired-jump ;; open the dired from current file
        "xd" 'ido-dired
+       "xo" 'ace-window
        "ff" 'toggle-full-window ;; I use WIN+F in i3
        "ip" 'find-file-in-project
        "jj" 'find-file-in-project-at-point
