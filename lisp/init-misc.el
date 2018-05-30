@@ -318,7 +318,8 @@ See \"Reusing passwords for several connections\" from INFO.
     (find-alternate-file (concat "/sudo:@127.0.0.1:"
                                  buffer-file-name))))
 
-(defadvice counsel-find-file (after find-file-sudo activate)
+(defadvice ido-find-file (after find-file-sudo activate)
+;(defadvice counsel-find-file (after find-file-sudo activate)
   "Find file as root if necessary."
   (if (and (not (and buffer-file-name
                      (file-writable-p buffer-file-name)))
@@ -328,7 +329,7 @@ See \"Reusing passwords for several connections\" from INFO.
            (string-match-p "^/etc/" buffer-file-name))
       (find-alternate-file (concat "/sudo:root@127.0.0.1:"
                                    buffer-file-name))))
-;; }}
+; }}
 
 ;; edit confluence wiki
 (add-to-list 'auto-mode-alist '("\\.wiki\\'" . confluence-edit-mode))
