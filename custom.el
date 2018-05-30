@@ -118,6 +118,7 @@
 ;; Python related stuff
 ;;==========================================================================
 (add-to-list 'auto-mode-alist '("\\SConscript$" . python-mode))
+(add-to-list 'auto-mode-alist '("\\SConstruct$" . python-mode))
 (setq elpy-rpc-python-command "python3")
 
 ;; machine specific extra config
