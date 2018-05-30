@@ -88,9 +88,17 @@
     erlang
     workgroups2
     zoutline
-    lsp-mode
+    magit
     company-c-headers
-    company-statistics)
+    company-statistics
+    lsp-mode
+    async
+    dash
+    ghub
+    git-commit
+    with-editor
+    magit-popup
+    )
   "Packages to install from melpa-unstable.")
 
 (defvar melpa-stable-banned-packages nil
@@ -185,6 +193,7 @@
 ;;------------------------------------------------------------------------------
 ;; Fire up package.el and ensure the following packages are installed.
 ;;------------------------------------------------------------------------------
+(require-package 'elisp-format)
 
 (require-package 'async)
 (require-package 'dash) ; required by string-edit
@@ -316,6 +325,7 @@
 (require-package 'auto-package-update)
 (require-package 'keyfreq)
 (require-package 'adoc-mode) ; asciidoc files
+(require-package 'magit)
 ;; {{ @see https://pawelbx.github.io/emacs-theme-gallery/
 (when *emacs24* (require-package 'color-theme))
 (when *emacs25*

@@ -72,6 +72,7 @@
     (when *has-cquery*
       (lsp-cquery-enable)
       )
+    (projectile-mode)
     )
 
 ;; donot use c-mode-common-hook or cc-mode-hook because many major-modes use this hook

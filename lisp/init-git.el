@@ -36,7 +36,7 @@
   (let (parent (filename (buffer-file-name)))
     (if (eq git-gutter:vcs-type 'svn)
         (setq parent "PREV")
-      (setq parent (if filename (concat (shell-command-to-string (concat "git --no-pager log --oneline -n1 --pretty='format:%H' " filename)) "^") "HEAD^")))
+      (setq parent (if filename (concat (shell-command-to-string (concat "git --no-pager log --oneline -n1 --pretty=\"format:%H\" " filename)) "^") "HEAD^")))
     (git-gutter:set-start-revision parent)
     (message "git-gutter:set-start-revision HEAD^")))
 
@@ -183,6 +183,11 @@
                   (if (eq 'deleted (aref gutter 1)) "-" "+")
                   target-linenum target-line)
           target-linenum)))
+
+(defun my-git-comment-amend-and-reuse-message ()
+  (interactive)
+  (let* ((s (shell-command-to-string "git --no-pager commit --amend --reuse-message=HEAD") ))
+    (message (nth 0 (nonempty-lines s)))))
 
 (defun my-goto-git-gutter ()
   (interactive)

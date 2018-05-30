@@ -32,7 +32,7 @@
   (if *win64*
       (setq my-font "Consolas-10")
     (if *is-a-mac*
-        (setq my-font "Monaco-11")
+        (setq my-font "SF Mono-12")
       (setq my-font "Inconsolata-11")))
   (set-default-font my-font)
   (set-face-attribute 'default t
@@ -52,6 +52,8 @@
 ;; all those stolen or my own little functions
 ;;
 (require 'elisp-format)
+
+
 ;;--------------------------------------------------------------------------
 ;; Go to the matching paren if on a paren; otherwise insert %.
 ;;--------------------------------------------------------------------------
@@ -105,18 +107,30 @@
   ;;(paste-to-mark arg)
   )
 
-
 ;;==========================================================================
 ;; MoinMoin mode
 ;;==========================================================================
 (load-file "~/.emacs.d/lisp/screen-lines.el")
 (load-file "~/.emacs.d/lisp/moinmoin-mode.el")
 
+;;==========================================================================
+;; Python related stuff
+;;==========================================================================
+(add-to-list 'auto-mode-alist '("\\SConscript$" . python-mode))
+(setq elpy-rpc-python-command "python3")
+
+;; machine specific extra config
+;; org-idx could be set here
+(setq host-custom-init (concat system-name ".el"))
+(if (file-exists-p host-custom-init)
+    (load-file host-custom-init))
 
 ;;==========================================================================
 ;; org publication
 ;;==========================================================================
-(setq org-idx (getenv "ORGIDX"))
+(when (not (boundp 'org-idx))
+  (setq org-idx (getenv "ORGIDX")))
+
 (when (not (equal nil org-idx))
   (require 'ox-publish)
   ;; Setup
@@ -188,8 +202,6 @@
                                  "http://www.google.co.jp/search?q=%s+site:developer.mozilla.org"
                                  utf-8)))
 
-
-
 ;;==========================================================================
 ;;File/buffer name convention: this-is-a-post.rst
 ;;==========================================================================
@@ -224,6 +236,17 @@
 (global-set-key [f4] 'ibuffer)
 (global-set-key [(meta g)] 'goto-line)
 
+
+(when *is-a-mac*
+  (global-unset-key [home])
+  (global-set-key [home] 'move-beginning-of-line)
+  (global-unset-key [end])
+  (global-set-key [end] 'move-end-of-line)
+  )
+
+;;===========================================================================
+;;export installed packages
+;;
 ;;https://github.com/redguardtoo/elpa-mirror
 ;;(add-to-list 'load-path "~/.emacs.d/site-lisp/elpa-mirror")
 ;;(require 'elpa-mirror)
