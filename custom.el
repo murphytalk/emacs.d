@@ -26,7 +26,8 @@
 ;; GUI font
 ;(load-theme 'gruber-darker 't)
 (load-theme 'molokai 't)
-;(load-theme 'busybee 't)
+;(load-theme 'darkburn 't)
+;(load-theme 'cyberpunk 't)
 
 (when (display-graphic-p)
   (if *win64*

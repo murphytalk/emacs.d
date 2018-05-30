@@ -101,7 +101,7 @@
 (defvar git-svn--available-commands nil "Cached list of git svn subcommands")
 
 (defun git-svn (dir)
-  "Run git svn"
+  "Run git svn."
   (interactive "DSelect directory: ")
   (unless git-svn--available-commands
     (setq git-svn--available-commands
@@ -109,7 +109,7 @@
   (let* ((default-directory (vc-git-root dir))
          (compilation-buffer-name-function (lambda (major-mode-name) "*git-svn*")))
     (compile (concat "git svn "
-                     (ido-completing-read "git-svn command: " git-svn--available-commands nil t)))))
+                     (completing-read "git-svn command: " git-svn--available-commands nil t)))))
 
 (defun git-get-current-file-relative-path ()
   (replace-regexp-in-string (concat "^" (file-name-as-directory default-directory))
@@ -183,11 +183,6 @@
                   (if (eq 'deleted (aref gutter 1)) "-" "+")
                   target-linenum target-line)
           target-linenum)))
-
-(defun my-git-comment-amend-and-reuse-message ()
-  (interactive)
-  (let* ((s (shell-command-to-string "git --no-pager commit --amend --reuse-message=HEAD") ))
-    (message (nth 0 (nonempty-lines s)))))
 
 (defun my-goto-git-gutter ()
   (interactive)
