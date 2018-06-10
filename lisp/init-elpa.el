@@ -66,7 +66,6 @@
     package-lint
     creole
     web
-    idomenu
     buffer-move
     regex-tool
     legalese
@@ -256,7 +255,6 @@
 (require-package 'session)
 (require-package 'unfill)
 (require-package 'w3m)
-(require-package 'idomenu)
 (require-package 'counsel-gtags)
 (require-package 'buffer-move)
 (require-package 'ace-window)
@@ -289,7 +287,6 @@
 (require-package 'legalese)
 (require-package 'simple-httpd)
 ;; (require-package 'git-gutter) ; use my patched version
-(require-package 'flx-ido)
 (require-package 'neotree)
 (require-package 'hydra)
 (require-package 'ivy-hydra) ; @see https://oremacs.com/2015/07/23/ivy-multiaction/
@@ -346,6 +343,7 @@
   (require-package 'flatland-theme)
   (require-package 'clues-theme)
   (require-package 'darkburn-theme) ; recommended
+  ;(require-package 'dracula-theme) ; recommended
   (require-package 'soothe-theme)
   (require-package 'dakrone-theme)
   (require-package 'busybee-theme)
