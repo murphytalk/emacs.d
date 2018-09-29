@@ -60,3 +60,4 @@ custom-set-variables.el
 network-security.data
 .last-package-update-day
 .my-emacs-custom.el
+.dir-locals.el

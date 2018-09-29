@@ -125,7 +125,7 @@
         ("melpa-stable" . "https://stable.melpa.org/packages/")))
 
 ;; Un-comment below line if you follow "Install stable version in easiest way"
-;; (setq package-archives '(("myelpa" . "~/projs/myelpa")))
+;; (setq package-archives '(("localelpa" . "~/.emacs.d/localelpa/") ("myelpa" . "~/projs/myelpa/")))
 (setq my-local-elpa-repo "~/pkg/myelpa-master")
 (when (file-accessible-directory-p  my-local-elpa-repo)
   (setq package-archives `(("myelpa" . ,my-local-elpa-repo))))
@@ -313,6 +313,7 @@
 (require-package 'evil-surround)
 (require-package 'evil-visualstar)
 (require-package 'evil-lion)
+(require-package 'evil-args)
 (require-package 'slime)
 (require-package 'counsel-css)
 (require-package 'auto-package-update)
@@ -320,6 +321,9 @@
 (require-package 'adoc-mode) ; asciidoc files
 (require-package 'elisp-format)
 (require-package 'magit) ; Magit 2.12 is the last feature release to support Emacs 24.4.
+(require-package 'shackle)
+(require-package 'toc-org)
+
 ;; {{ @see https://pawelbx.github.io/emacs-theme-gallery/
 (when *emacs24*
   (require-package 'color-theme)
