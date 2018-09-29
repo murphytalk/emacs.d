@@ -119,11 +119,18 @@
 ;;==========================================================================
 (add-to-list 'auto-mode-alist '("\\SConscript$" . python-mode))
 (add-to-list 'auto-mode-alist '("\\SConstruct$" . python-mode))
-(setq elpy-rpc-python-command "python3")
+(setq python3 (executable-find "python3"))
+(when (not (equal nil python3))
+  (setq elpy-rpc-python-command python3)
+  (setq elpy-interactive-python-command python3)
+  )
+(setq python-shell-interpreter "ipython3"
+      python-shell-interpreter-args "-i --simple-prompt")
+
 
 ;; machine specific extra config
 ;; org-idx could be set here
-(setq host-custom-init (concat system-name ".el"))
+(setq host-custom-init (concat "~/" system-name ".el"))
 (if (file-exists-p host-custom-init)
     (load-file host-custom-init))
 
