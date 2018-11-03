@@ -1,3 +1,5 @@
+;; -*- coding: utf-8; lexical-binding: t; -*-
+
 ;; http://stackoverflow.com/questions/3875213/turning-on-linum-mode-when-in-python-c-mode
 (setq linum-mode-inhibit-modes-list '(eshell-mode
                                       shell-mode
@@ -5,7 +7,6 @@
                                       ffip-diff-mode
                                       dictionary-mode
                                       erc-mode
-                                      browse-kill-ring-mode
                                       dired-mode
                                       help-mode
                                       text-mode

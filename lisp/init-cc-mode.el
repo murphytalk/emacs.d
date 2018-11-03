@@ -1,3 +1,5 @@
+;; -*- coding: utf-8; lexical-binding: t; -*-
+
 (defun c-wx-lineup-topmost-intro-cont (langelem)
   (save-excursion
     (beginning-of-line)
@@ -47,6 +49,19 @@
 
   (setq cc-search-directories '("." "/usr/include" "/usr/local/include/*" "../*/include" "$WXWIN/include"))
 
+  ;; {{ @see https://github.com/redguardtoo/cpputils-cmake
+  ;; Make sure your project use cmake!
+  ;; Or else, you need comment out below code
+  ;; In theory, you can write your own Makefile for `flyamke-mode' without cmake.
+  ;; Nobody actually does this in real world. So if you don't use cmake, don't turn
+  ;; on `flymake-mode'
+  (flymake-mode 1)
+  (when (and (executable-find "cmake")
+             (not (string-match-p "^\\(/usr/local/include\\|/usr/src/linux/include\\)/.*"
+                                  buffer-file-name)))
+    (cppcm-reload-all))
+  ;; }}
+
   ;; wxWidgets setup
   (c-set-offset 'topmost-intro-cont 'c-wx-lineup-topmost-intro-cont)
 
@@ -91,8 +106,7 @@
                                     (shell-command-to-string "global -p"))))
       ;; emacs 24.4+ will set up eldoc automatically.
       ;; so below code is NOT needed.
-      (eldoc-mode 1))
-    ))
+      (eldoc-mode 1))))
 (add-hook 'c-mode-common-hook 'c-mode-common-hook-setup)
 
 (provide 'init-cc-mode)
