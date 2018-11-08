@@ -29,7 +29,10 @@
 ;(load-theme 'darkburn 't)
 ;(load-theme 'cyberpunk 't)
 
+(setq neo-window-fixed-size nil)
 (when (display-graphic-p)
+  ;;run M-x all-the-icons-install-fonts to use icons theme
+  (setq neo-theme 'icons)
   (if *win64*
       (setq my-font "Consolas-10")
     (if *is-a-mac*
@@ -222,6 +225,7 @@
                      (interactive)
                      (find-file org-idx))))
 (global-set-key [f4] 'ibuffer)
+(global-set-key [f5] 'neotree-toggle)
 (global-set-key [(meta g)] 'goto-line)
 
 

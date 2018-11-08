@@ -190,6 +190,7 @@
 ;; Fire up package.el and ensure the following packages are installed.
 ;;------------------------------------------------------------------------------
 (require-package 'elisp-format)
+(require-package 'all-the-icons)
 
 (require-package 'async)
 (require-package 'dash) ; required by string-edit
