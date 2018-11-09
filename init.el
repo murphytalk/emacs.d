@@ -19,7 +19,7 @@
 
 (let* ((minver "24.4"))
   (when (version< emacs-version minver)
-    (error "This config requires Emacs v%s or higher" minver)))
+    (error "Emacs v%s or higher is required." minver)))
 
 (defvar best-gc-cons-threshold
   4000000
@@ -52,10 +52,6 @@
                    (*linux* nil)
                    (t nil)))
 
-;; emacs 24.3-
-(setq *emacs24old*  (or (and (= emacs-major-version 24) (= emacs-minor-version 3))
-                        (not *emacs24*)))
-
 ;; @see https://www.reddit.com/r/emacs/comments/55ork0/is_emacs_251_noticeably_slower_than_245_on_windows/
 ;; Emacs 25 does gc too frequently
 (when *emacs25*
@@ -71,14 +67,14 @@
   `(unless (featurep ,pkg)
      (cond
       ((eq ,pkg 'bookmark+)
-       (load (file-truename (format "~/.emacs.d/site-lisp/bookmark-plus/%s" ,pkg))))
+       (load (file-truename (format "~/.emacs.d/site-lisp/bookmark-plus/%s" ,pkg)) t t))
       ((eq ,pkg 'go-mode-load)
-       (load (file-truename (format "~/.emacs.d/site-lisp/go-mode/%s" ,pkg))))
+       (load (file-truename (format "~/.emacs.d/site-lisp/go-mode/%s" ,pkg)) t t))
       (t
-       (load (file-truename (format "~/.emacs.d/site-lisp/%s/%s" ,pkg ,pkg)))))))
+       (load (file-truename (format "~/.emacs.d/site-lisp/%s/%s" ,pkg ,pkg)) t t)))))
 
 (defmacro require-init (pkg)
-  `(load (file-truename (format "~/.emacs.d/lisp/%s" ,pkg))))
+  `(load (file-truename (format "~/.emacs.d/lisp/%s" ,pkg)) t t))
 
 ;; *Message* buffer should be writable in 24.4+
 (defadvice switch-to-buffer (after switch-to-buffer-after-hack activate)
@@ -153,32 +149,14 @@
   (require-init 'init-emacs-w3m)
   (require-init 'init-hydra)
   (require-init 'init-shackle)
-
-  (add-to-list 'load-path (expand-file-name "~/.emacs.d/lisp"))
-  ;; {{ idle require other stuff
-  (local-require 'idle-require)
-  (setq idle-require-idle-delay 2)
-  (setq idle-require-symbols '(init-perforce
-                               init-slime
-                               init-misc-lazy
-                               init-fonts
-                               init-hs-minor-mode
-                               init-writting
-                               init-pomodoro
-                               init-dired
-                               init-artbollocks-mode
-                               init-semantic))
-  (idle-require-mode 1) ;; starts loading
-  ;; }}
-
-  (when (require 'time-date nil t)
-    (message "Emacs startup time: %d seconds."
-             (time-to-seconds (time-since emacs-load-start-time))))
+  (require-init 'init-dired)
+  (require-init 'init-artbollocks-mode)
+  (require-init 'init-writting)
 
   ;; @see https://github.com/hlissner/doom-emacs/wiki/FAQ
   ;; Adding directories under "~/.emacs.d/site-lisp/" to `load-path' slows
   ;; down all `require' statement. So we do this at the end of startup
-  ;; Besides, no packages from ELPA is dependent "~/.emacs.d/site-lisp" now.
+  ;; Besides, no packages from ELPA is dependent on "~/.emacs.d/site-lisp".
   (require-init 'init-site-lisp)
 
   ;; my personal setup, other major-mode specific setup need it.
@@ -192,6 +170,11 @@
   (load custom-file 'noerror))
 
 (setq gc-cons-threshold best-gc-cons-threshold)
+
+(when (require 'time-date nil t)
+  (message "Emacs startup time: %d seconds."
+           (time-to-seconds (time-since emacs-load-start-time))))
+
 ;;; Local Variables:
 ;;; no-byte-compile: t
 ;;; End:
