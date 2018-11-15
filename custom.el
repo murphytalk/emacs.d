@@ -37,7 +37,7 @@
       (setq my-font "Consolas-10")
     (if *is-a-mac*
         (setq my-font "SF Mono-12")
-      (setq my-font "Inconsolata-11")))
+      (setq my-font "Monospace-10")))
   (set-default-font my-font)
   (set-face-attribute 'default t
                       :font my-font)
