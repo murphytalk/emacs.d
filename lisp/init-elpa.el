@@ -121,7 +121,11 @@
         ;; }}
 
         ("melpa" . "https://melpa.org/packages/")
-        ("melpa-stable" . "https://stable.melpa.org/packages/")))
+        ("melpa-stable" . "https://stable.melpa.org/packages/")
+        ;("melpa" . "http://elpa.emacs-china.org/melpa/")
+        ;("melpa-stable" . "http://elpa.emacs-china.org/melpa-stable/")
+        )
+      )
 
 ;; Un-comment below line if you follow "Install stable version in easiest way"
 ;; (setq package-archives '(("localelpa" . "~/.emacs.d/localelpa/") ("myelpa" . "~/projs/myelpa/")))
