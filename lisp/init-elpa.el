@@ -49,6 +49,7 @@
     badger-theme
     distinguished-theme
     challenger-deep-theme
+    tao-theme
     wgrep
     robe
     slime
@@ -369,7 +370,8 @@
   (require-package 'hemisu-theme)
   (require-package 'badger-theme)
   (require-package 'distinguished-theme)
-  (require-package 'challenger-deep-theme))
+  (require-package 'challenger-deep-theme)
+  (require-package 'tao-theme))
 ;; }}
 
 (require-package 'cquery)
