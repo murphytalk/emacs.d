@@ -64,6 +64,12 @@
                    (*linux* nil)
                    (t nil)))
 
+(setq cquery-executable (executable-find "cquery"))
+(setq *has-cquery* (not (equal nil cquery-executable)))
+;; more advanced lsp ui feature
+;; https://github.com/emacs-lsp/lsp-ui
+(setq *use-lsp-ui* 't)
+
 ;; @see https://www.reddit.com/r/emacs/comments/55ork0/is_emacs_251_noticeably_slower_than_245_on_windows/
 ;; Emacs 25 does gc too frequently
 (when *emacs25*

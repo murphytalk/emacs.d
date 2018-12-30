@@ -210,8 +210,17 @@ You still need modify `package-archives' in \"init-elpa.el\" to PERMANENTLY use 
 ;;------------------------------------------------------------------------------
 (require-package 'elisp-format)
 (require-package 'all-the-icons)
-; https://github.com/emacs-helm/helm-ls-git
+
+;;------------------------------------------------------------------------------
+;; For cquery
+;;------------------------------------------------------------------------------
+(when *has-cquery*
+  ; https://github.com/emacs-helm/helm-ls-git
+  (require-package 'cquery)
+  (when *use-lsp-ui* (require-package 'lsp-ui))
+  )
 (require-package 'helm-ls-git)
+;;------------------------------------------------------------------------------
 
 (require-package 'async)
 ; color-theme 6.6.1 in elpa is buggy
@@ -386,7 +395,6 @@ You still need modify `package-archives' in \"init-elpa.el\" to PERMANENTLY use 
   (require-package 'tao-theme))
 ;; }}
 
-(require-package 'cquery)
 ;; kill buffer without my confirmation
 (setq kill-buffer-query-functions (delq 'process-kill-buffer-query-function kill-buffer-query-functions))
 
