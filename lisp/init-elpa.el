@@ -210,6 +210,8 @@ You still need modify `package-archives' in \"init-elpa.el\" to PERMANENTLY use 
 ;;------------------------------------------------------------------------------
 (require-package 'elisp-format)
 (require-package 'all-the-icons)
+; https://github.com/emacs-helm/helm-ls-git
+(require-package 'helm-ls-git)
 
 (require-package 'async)
 ; color-theme 6.6.1 in elpa is buggy

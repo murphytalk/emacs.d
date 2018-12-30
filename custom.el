@@ -37,7 +37,7 @@
       (setq my-font "Consolas-10")
     (if *is-a-mac*
         (setq my-font "SF Mono-12")
-      (setq my-font "Monospace-10")))
+      (setq my-font "Fira Code Retina-10")))
   (set-default-font my-font)
   (set-face-attribute 'default t
                       :font my-font)
@@ -218,6 +218,13 @@
 ;;===========================================================================
 ;; Keys mapping
 ;;===========================================================================
+
+;; magit
+(global-set-key (kbd "C-x g") 'magit-status)
+
+;; https://github.com/emacs-helm/helm-ls-git
+(global-set-key (kbd "M-p") 'helm-ls-git-ls)
+
 (global-set-key [(control -)] 'set-mark-command)
 (when (not (equal nil org-idx))
   (global-set-key [f2]
