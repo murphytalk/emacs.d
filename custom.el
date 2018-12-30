@@ -37,7 +37,7 @@
       (setq my-font "Consolas-10")
     (if *is-a-mac*
         (setq my-font "SF Mono-12")
-      (setq my-font "Monospace-10")))
+      (setq my-font "Fira Code Retina-10")))
   (set-default-font my-font)
   (set-face-attribute 'default t
                       :font my-font)
@@ -177,10 +177,13 @@
       (setq cscope-option-do-not-update-database 't))
 
 ;; for cquery
-(setq cquery-executable (executable-find "cquery"))
-(setq *has-cquery* (not (equal nil cquery-executable)))
-(when *has-cquery*
-  (require 'cquery))
+(when *has-cquery* (require 'cquery)
+      (when *use-lsp-ui* (require 'lsp-ui)
+            (add-hook 'lsp-mode-hook 'lsp-ui-mode)
+            (define-key lsp-ui-mode-map [remap xref-find-definitions] #'lsp-ui-peek-find-definitions)
+            (define-key lsp-ui-mode-map [remap xref-find-references] #'lsp-ui-peek-find-references)
+            )
+      )
 
 ;;==========================================================================
 ;; Emacs version compatability
@@ -218,6 +221,13 @@
 ;;===========================================================================
 ;; Keys mapping
 ;;===========================================================================
+
+;; magit
+(global-set-key (kbd "C-x g") 'magit-status)
+
+;; https://github.com/emacs-helm/helm-ls-git
+(global-set-key (kbd "M-p") 'helm-ls-git-ls)
+
 (global-set-key [(control -)] 'set-mark-command)
 (when (not (equal nil org-idx))
   (global-set-key [f2]
