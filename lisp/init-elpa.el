@@ -1,5 +1,13 @@
 ;; -*- coding: utf-8; lexical-binding: t; -*-
 
+(defun initialize-package ()
+  (unless nil ;package--initialized
+    ;; optimization, no need to activate all the packages so early
+    (setq package-enable-at-startup nil)
+    (package-initialize)))
+
+(initialize-package)
+
 ;; List of visible packages from melpa-unstable (http://melpa.org).
 ;; Please add the package name into `melpa-include-packages`
 ;; if it's not visible after  `list-packages'.
@@ -96,6 +104,7 @@
     git-commit
     with-editor
     magit-popup
+    elisp-format
     )
   "Packages to install from melpa-unstable.")
 
@@ -215,10 +224,10 @@ You still need modify `package-archives' in \"init-elpa.el\" to PERMANENTLY use 
 ;; For cquery
 ;;------------------------------------------------------------------------------
 (when *has-cquery*
-  ; https://github.com/emacs-helm/helm-ls-git
   (require-package 'cquery)
   (when *use-lsp-ui* (require-package 'lsp-ui))
   )
+; https://github.com/emacs-helm/helm-ls-git
 (require-package 'helm-ls-git)
 ;;------------------------------------------------------------------------------
 
