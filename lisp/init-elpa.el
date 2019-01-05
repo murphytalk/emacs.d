@@ -96,6 +96,7 @@
     git-commit
     with-editor
     magit-popup
+    elisp-format
     )
   "Packages to install from melpa-unstable.")
 
@@ -215,10 +216,10 @@ You still need modify `package-archives' in \"init-elpa.el\" to PERMANENTLY use 
 ;; For cquery
 ;;------------------------------------------------------------------------------
 (when *has-cquery*
-  ; https://github.com/emacs-helm/helm-ls-git
   (require-package 'cquery)
   (when *use-lsp-ui* (require-package 'lsp-ui))
   )
+; https://github.com/emacs-helm/helm-ls-git
 (require-package 'helm-ls-git)
 ;;------------------------------------------------------------------------------
 
