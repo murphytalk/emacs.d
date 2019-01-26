@@ -218,6 +218,7 @@ You still need modify `package-archives' in \"init-elpa.el\" to PERMANENTLY use 
 ;;------------------------------------------------------------------------------
 (require-package 'elisp-format)
 (require-package 'all-the-icons)
+(require-package 'dockerfile-mode)
 
 ;;------------------------------------------------------------------------------
 ;; For cquery
