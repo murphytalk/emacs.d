@@ -115,7 +115,7 @@
 (setq package-archives
       '(("localelpa" . "~/.emacs.d/localelpa/")
         ;; uncomment below line if you need use GNU ELPA
-        ;; ("gnu" . "https://elpa.gnu.org/packages/")
+        ("gnu" . "https://elpa.gnu.org/packages/")
         ("melpa" . "https://melpa.org/packages/")
         ("melpa-stable" . "https://stable.melpa.org/packages/")
 
@@ -219,6 +219,8 @@ You still need modify `package-archives' in \"init-elpa.el\" to PERMANENTLY use 
 (require-package 'elisp-format)
 (require-package 'all-the-icons)
 (require-package 'dockerfile-mode)
+(require-package 'spinner) ; requied by cquery-mode
+(require-package 'flx-ido)
 
 ;;------------------------------------------------------------------------------
 ;; For cquery

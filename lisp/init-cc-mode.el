@@ -87,7 +87,7 @@
        ))
 
     (when *has-cquery*
-      (lsp-cquery-enable)
+      (lsp)
       )
     ;;(projectile-mode)
     )
