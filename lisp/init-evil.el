@@ -485,14 +485,18 @@ If the character before and after CH is space or tab, CH is NOT slash"
                 (counsel-etags-grep))
                ((= n 1)
                 ;; grep references of current web component
-                (counsel-etags-grep (format "<%s" (file-name-base buffer-file-name))))
+                ;; component could be inside styled-component like `const c = styled(Comp1)`
+                (counsel-etags-grep (format "(<|styled\\\()%s" (file-name-base buffer-file-name))))
                ((= n 2)
                 ;; grep web component attribute name
                 (counsel-etags-grep (format "^ *%s[=:]" (or (thing-at-point 'symbol)
                                                             (read-string "Component attribute name?")))))
                ((= n 3)
-                ;; grep current file name base
-                (counsel-etags-grep (format "%s" (file-name-nondirectory buffer-file-name))))))
+                ;; grep current file name
+                (counsel-etags-grep (format ".*%s" (file-name-nondirectory buffer-file-name))))
+               ((= n 4)
+                ;; grep js files which is imported
+                (counsel-etags-grep (format "from .*%s('|\\\.js');?" (file-name-base (file-name-nondirectory buffer-file-name)))))))
        "dd" 'counsel-etags-grep-symbol-at-point
        "xc" 'save-buffers-kill-terminal
        "rr" 'my-counsel-recentf
@@ -555,16 +559,16 @@ If the character before and after CH is space or tab, CH is NOT slash"
        "bj" 'buf-move-down
        "bh" 'buf-move-left
        "bl" 'buf-move-right
-       "0" 'select-window-0
-       "1" 'select-window-1
-       "2" 'select-window-2
-       "3" 'select-window-3
-       "4" 'select-window-4
-       "5" 'select-window-5
-       "6" 'select-window-6
-       "7" 'select-window-7
-       "8" 'select-window-8
-       "9" 'select-window-9
+       "0" 'winum-select-window-0-or-10
+       "1" 'winum-select-window-1
+       "2" 'winum-select-window-2
+       "3" 'winum-select-window-3
+       "4" 'winum-select-window-4
+       "5" 'winum-select-window-5
+       "6" 'winum-select-window-6
+       "7" 'winum-select-window-7
+       "8" 'winum-select-window-8
+       "9" 'winum-select-window-9
        "xm" 'my-M-x
        "xx" 'er/expand-region
        "xf" 'counsel-find-file
