@@ -98,6 +98,7 @@
     company-c-headers
     company-statistics
     lsp-mode
+    cquery
     async
     dash
     ghub

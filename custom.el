@@ -253,4 +253,4 @@
 ;;https://github.com/redguardtoo/elpa-mirror
 ;;(add-to-list 'load-path "~/.emacs.d/site-lisp/elpa-mirror")
 ;;(require 'elpa-mirror)
-;;run M-x elpamr-create-mirror-for-installed
+;;(elpamr-create-mirror-for-installed)
