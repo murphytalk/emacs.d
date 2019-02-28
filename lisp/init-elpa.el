@@ -12,8 +12,7 @@
 ;; Please add the package name into `melpa-include-packages`
 ;; if it's not visible after  `list-packages'.
 (defvar melpa-include-packages
-  '(ace-mc
-    color-theme ; emacs24 need this package
+  '(color-theme ; emacs24 need this package
     ace-window ; lastest stable is released on year 2014
     auto-package-update
     bbdb
@@ -59,17 +58,15 @@
     challenger-deep-theme
     tao-theme
     wgrep
-    robe
     slime
     groovy-mode
-    inf-ruby
     ;; company ; I won't wait another 2 years for stable
     simple-httpd
     dsvn
     findr
     mwe-log-commands
     yaml-mode
-    counsel-gtags               ; the stable version is never released
+    counsel-gtags ; the stable version is never released
     noflet
     db
     package-lint
@@ -92,7 +89,6 @@
     gitconfig-mode
     textile-mode
     w3m
-    erlang
     workgroups2
     zoutline
     company-c-headers
@@ -244,19 +240,14 @@ You still need modify `package-archives' in \"init-elpa.el\" to PERMANENTLY use 
 (require-package 'ace-link)
 (require-package 'expand-region) ; I prefer stable version
 (require-package 'fringe-helper)
-(require-package 'haskell-mode)
 (require-package 'gitignore-mode)
 (require-package 'gitconfig-mode)
 (require-package 'gist)
 (require-package 'wgrep)
 (require-package 'request)
 (require-package 'lua-mode)
-(require-package 'robe)
-(require-package 'inf-ruby)
 (require-package 'workgroups2)
-(require-package 'yaml-mode)
 (require-package 'paredit)
-(require-package 'erlang)
 (require-package 'findr)
 (require-package 'pinyinlib)
 (require-package 'find-by-pinyin-dired)
@@ -278,7 +269,6 @@ You still need modify `package-archives' in \"init-elpa.el\" to PERMANENTLY use 
 (require-package 'git-timemachine)
 (require-package 'exec-path-from-shell)
 (require-package 'flymake-jslint)
-(require-package 'flymake-ruby)
 (require-package 'ivy)
 (require-package 'swiper)
 (require-package 'counsel) ; counsel => swiper => ivy
@@ -289,7 +279,6 @@ You still need modify `package-archives' in \"init-elpa.el\" to PERMANENTLY use 
 (require-package 'command-log-mode)
 (require-package 'regex-tool)
 (require-package 'groovy-mode)
-(require-package 'ruby-compilation)
 (require-package 'emmet-mode)
 (require-package 'winum)
 (require-package 'session)
@@ -310,13 +299,7 @@ You still need modify `package-archives' in \"init-elpa.el\" to PERMANENTLY use 
 (require-package 'multi-term)
 (require-package 'js-doc)
 (require-package 'js2-mode)
-(require-package 'js2-refactor)
 (require-package 'rjsx-mode)
-(require-package 's)
-;; js2-refactor requires js2, dash, s, multiple-cursors, yasnippet
-;; I don't use multiple-cursors, but js2-refactor requires it
-(require-package 'multiple-cursors)
-(require-package 'ace-mc)
 (require-package 'tagedit)
 (require-package 'git-link)
 (require-package 'cliphist)
