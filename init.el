@@ -59,6 +59,9 @@
                    (*linux* nil)
                    (t nil)))
 
+
+(setq *has-cscope* (not (equal nil (executable-find "cscope"))))
+
 (setq cquery-executable (executable-find "cquery"))
 (setq *has-cquery* (not (equal nil cquery-executable)))
 ;; more advanced lsp ui feature

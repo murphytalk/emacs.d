@@ -12,6 +12,7 @@
          retval)
      ,@clean-up))
 
+
 ;; {{ copied from http://ergoemacs.org/emacs/elisp_read_file_content.html
 (defun get-string-from-file (file)
   "Return FILE's content."
@@ -420,4 +421,15 @@ you can '(setq my-mplayer-extra-opts \"-ao alsa -vo vdpau\")'.")
   (and buffer-file-name
        (string-match-p "\.\\(mock\\|min\\)\.js" buffer-file-name)))
 
+(defun my-async-shell-command (command)
+  "Execute string COMMAND asynchronously."
+  (let* ((proc (start-process "Shell"
+                              nil
+                              shell-file-name
+                              shell-command-switch command)))
+    (set-process-sentinel proc `(lambda (process signal)
+                                  (let* ((status (process-status process)))
+                                    (when (memq status '(exit signal))
+                                      (unless (string= (substring signal 0 -1) "finished")
+                                        (message "Failed to run \"%s\"." ,command))))))))
 (provide 'init-utils)

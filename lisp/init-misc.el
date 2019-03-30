@@ -176,8 +176,8 @@
 (which-key-mode 1)
 ;; }}
 
-
 ;; smex or counsel-M-x?
+;; 2019/3/30 - upstream decided to favor the latter but I still prefer smex as it supports fuzzy match
 (defvar my-use-smex 't
   "Use `smex' instead of `counsel-M-x' when press M-x.")
 (defun my-M-x ()
@@ -356,6 +356,29 @@ Keep the last num lines if argument num if given."
      ))
 ;; }}
 
+(defun my-multi-purpose-grep (n)
+  (interactive "P")
+  (cond
+   ((not n)
+    (counsel-etags-grep))
+   ((= n 1)
+    ;; grep references of current web component
+    ;; component could be inside styled-component like `const c = styled(Comp1)`
+    (let* ((fb (file-name-base buffer-file-name)))
+      (when (string= "index" fb)
+        (setq fb (file-name-base (directory-file-name (file-name-directory (directory-file-name buffer-file-name))))))
+        (counsel-etags-grep (format "(<%s( *$| [^ ])|styled\\\(%s\\))" fb fb))))
+   ((= n 2)
+    ;; grep web component attribute name
+    (counsel-etags-grep (format "^ *%s[=:]" (or (thing-at-point 'symbol)
+                                                (read-string "Component attribute name?")))))
+   ((= n 3)
+    ;; grep current file name
+    (counsel-etags-grep (format ".*%s" (file-name-nondirectory buffer-file-name))))
+   ((= n 4)
+    ;; grep js files which is imported
+    (counsel-etags-grep (format "from .*%s('|\\\.js');?" (file-name-base (file-name-nondirectory buffer-file-name)))))))
+
 (defun toggle-full-window()
   "Toggle the full view of selected window"
   (interactive)
@@ -468,11 +491,14 @@ Keep the last num lines if argument num if given."
       (define-key map (kbd "M-7") 'winum-select-window-7)
       (define-key map (kbd "M-8") 'winum-select-window-8)
       map))
-(require 'winum)
-(setq winum-format "%s")
-(setq winum-mode-line-position 0)
-(set-face-attribute 'winum-face nil :foreground "DeepPink" :underline "DeepPink" :weight 'bold)
-(winum-mode)
+
+(unless (featurep 'winum) (require 'winum))
+(eval-after-load 'winum
+  '(progn
+     (setq winum-format "%s")
+     (setq winum-mode-line-position 0)
+     (set-face-attribute 'winum-face nil :foreground "DeepPink" :underline "DeepPink" :weight 'bold)
+     (winum-mode 1)))
 ;; }}
 
 (ace-pinyin-global-mode +1)
@@ -1260,6 +1286,7 @@ Including indent-buffer, which should not be called automatically on save."
 (which-function-mode 1)
 ;; }}
 
+;; {{ pomodoro
 (eval-after-load 'pomodoro
   '(progn
      (setq pomodoro-break-time 2)
@@ -1272,5 +1299,52 @@ Including indent-buffer, which should not be called automatically on save."
 (unless (featurep 'pomodoro)
   (require 'pomodoro)
   (pomodoro-add-to-mode-line))
+;; }}
+
+;; {{ pronunciation
+(defun my-pronounce-word (&optional word)
+  (interactive "sWord: ")
+  (unless (featurep 'url) (require 'url))
+  (if word (setq word (downcase word)))
+  (let* ((url (format "https://dictionary.cambridge.org/pronunciation/english/%s" word))
+         (cached-mp3 (file-truename (format "~/.emacs.d/misc/%s.mp3" word)))
+         (player (if (not *is-a-mac*) (my-guess-mplayer-path) "open"))
+         html-text
+         online-mp3)
+    (cond
+     ((file-exists-p cached-mp3)
+      (my-async-shell-command (format "%s %s" player cached-mp3)))
+     ((and (not (string-match "404" (setq html-text (with-current-buffer (url-retrieve-synchronously url) (buffer-string)))))
+           (string-match "data-src-mp3=\"\\([^\"]+\\)" html-text))
+      (setq online-mp3 (concat "https://dictionary.cambridge.org" (match-string 1 html-text)))
+      (url-copy-file online-mp3 cached-mp3)
+      (my-async-shell-command (format "%s %s" player cached-mp3)))
+     (t
+      (message "Sorry, can't find pronunciation for \"%s\"" word)))))
+
+(defun my-pronounce-current-word ()
+  "Pronounce current word."
+  (interactive)
+  (when (memq major-mode '(nov-mode))
+    ;; go to end of word to workaround `nov-mode' bug
+    (forward-word)
+    (forward-char -1))
+  (my-pronounce-word (thing-at-point 'word)))
+;; }}
+
+;; {{ epub setup
+(add-to-list 'auto-mode-alist '("\\.epub\\'" . nov-mode))
+(defun nov-mode-hook-setup ()
+  (local-set-key (kbd "d") (lambda ()
+                             (interactive)
+                             (when (memq major-mode '(nov-mode))
+                               ;; go to end of word to workaround `nov-mode' bug
+                               (forward-word)
+                               (forward-char -1))
+                             (sdcv-search-input (thing-at-point 'word))))
+  (local-set-key (kbd "w") 'my-pronounce-current-word)
+  (local-set-key (kbd ";") 'avy-goto-char-2))
+(add-hook 'nov-mode-hook 'nov-mode-hook-setup)
+;; }}
 
 (provide 'init-misc)

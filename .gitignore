@@ -56,10 +56,13 @@ projectile.cache
 .unpacked
 srecode-map.el
 custom-set-variables.el
-.smex-items
+amx-items
 network-security.data
 .last-package-update-day
 .my-emacs-custom.el
 .dir-locals.el
 .DS_Store
-
+*.mp3
+*.mp4
+*.ogg
+nov-places

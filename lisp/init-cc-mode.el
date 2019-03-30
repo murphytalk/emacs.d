@@ -90,6 +90,9 @@
     (when *has-cquery*
       (lsp)
       )
+    (when *has-cscope*
+      (cscope-minor-mode)
+      )
     ;;(projectile-mode)
     )
 

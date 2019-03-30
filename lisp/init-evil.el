@@ -13,19 +13,6 @@
   (push '(93 . ("[" . "]")) evil-surround-pairs-alist))
 (add-hook 'prog-mode-hook 'evil-surround-prog-mode-hook-setup)
 
-(defun my-find-tag-at-point ()
-  "Find tag or Emacs Lisp function definition at point."
-  (interactive)
-  (unless (featurep 'counsel-etags) (require 'counsel-etags))
-  (cond
-   ((memq major-mode '(emacs-lisp-mode lisp-interaction-mode) )
-    (let* ((fn (car (find-function-read))))
-      (when fn
-        (counsel-etags-push-marker-stack (point-marker))
-        (find-function-do-it fn nil 'switch-to-buffer))))
-   (t
-    (counsel-etags-find-tag-at-point))))
-
 (defun evil-surround-js-mode-hook-setup ()
   ;; ES6
   (push '(?1 . ("{`" . "`}")) evil-surround-pairs-alist)
@@ -306,8 +293,8 @@ If the character before and after CH is space or tab, CH is NOT slash"
 (define-key evil-normal-state-map "Y" (kbd "y$"))
 ;; (define-key evil-normal-state-map (kbd "RET") 'ivy-switch-buffer-by-pinyin) ; RET key is preserved for occur buffer
 (define-key evil-normal-state-map "go" 'goto-char)
-(define-key evil-normal-state-map (kbd "C-]") 'my-find-tag-at-point)
-(define-key evil-visual-state-map (kbd "C-]") 'my-find-tag-at-point)
+(define-key evil-normal-state-map (kbd "C-]") 'counsel-etags-find-tag-at-point)
+(define-key evil-visual-state-map (kbd "C-]") 'counsel-etags-find-tag-at-point)
 (define-key evil-insert-state-map (kbd "C-x C-n") 'evil-complete-next-line)
 (define-key evil-insert-state-map (kbd "C-x C-p") 'evil-complete-previous-line)
 (define-key evil-insert-state-map (kbd "C-]") 'aya-expand)
@@ -414,6 +401,7 @@ If the character before and after CH is space or tab, CH is NOT slash"
        "xo" 'ace-window
        "ff" 'toggle-full-window ;; I use WIN+F in i3
        "ip" 'find-file-in-project
+       "tt" 'find-file-in-current-directory
        "jj" 'find-file-in-project-at-point
        "kk" 'find-file-in-project-by-selected
        "kn" 'find-file-with-similar-name ; ffip v5.3.1
@@ -436,7 +424,7 @@ If the character before and after CH is space or tab, CH is NOT slash"
        "ts" 'evilmr-tag-selected-region ;; recommended
        "cby" 'cb-switch-between-controller-and-view
        "cbu" 'cb-get-url-from-controller
-       "ht" 'my-find-tag-at-point ; better than find-tag C-]
+       "ht" 'counsel-etags-find-tag-at-point ; better than find-tag C-]
        "rt" 'counsel-etags-recent-tag
        "ft" 'counsel-etags-find-tag
        "mm" 'counsel-bookmark-goto
@@ -476,7 +464,7 @@ If the character before and after CH is space or tab, CH is NOT slash"
        "." 'evil-ex
        ;; @see https://github.com/pidu/git-timemachine
        ;; p: previous; n: next; w:hash; W:complete hash; g:nth version; q:quit
-       "tt" 'dumb-jump-go
+       "tg" 'dumb-jump-go
        "tb" 'dumb-jump-back
        "tm" 'my-git-timemachine
        ;; toggle overview,  @see http://emacs.wordpress.com/2007/01/16/quick-and-dirty-code-folding/
@@ -490,26 +478,7 @@ If the character before and after CH is space or tab, CH is NOT slash"
        "cxi" 'org-clock-in ; `C-c C-x C-i'
        "cxo" 'org-clock-out ; `C-c C-x C-o'
        "cxr" 'org-clock-report ; `C-c C-x C-r'
-       "qq" (lambda (n)
-              (interactive "P")
-              (cond
-               ((not n)
-                (counsel-etags-grep))
-               ((= n 1)
-                ;; grep references of current web component
-                ;; component could be inside styled-component like `const c = styled(Comp1)`
-                (let* ((fb (file-name-base buffer-file-name)))
-                  (counsel-etags-grep (format "(<%s( *$| [^ ])|styled\\\(%s\\))" fb fb))))
-               ((= n 2)
-                ;; grep web component attribute name
-                (counsel-etags-grep (format "^ *%s[=:]" (or (thing-at-point 'symbol)
-                                                            (read-string "Component attribute name?")))))
-               ((= n 3)
-                ;; grep current file name
-                (counsel-etags-grep (format ".*%s" (file-name-nondirectory buffer-file-name))))
-               ((= n 4)
-                ;; grep js files which is imported
-                (counsel-etags-grep (format "from .*%s('|\\\.js');?" (file-name-base (file-name-nondirectory buffer-file-name)))))))
+       "qq" 'my-multi-purpose-grep
        "dd" 'counsel-etags-grep-symbol-at-point
        "xc" 'save-buffers-kill-terminal
        "rr" 'my-counsel-recentf
@@ -582,7 +551,7 @@ If the character before and after CH is space or tab, CH is NOT slash"
        "7" 'winum-select-window-7
        "8" 'winum-select-window-8
        "9" 'winum-select-window-9
-       "xm" 'my-M-x
+       "xm" 'counsel-M-x
        "xx" 'er/expand-region
        "xf" 'counsel-find-file
        "xb" 'ivy-switch-buffer-by-pinyin

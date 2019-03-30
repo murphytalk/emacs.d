@@ -170,7 +170,6 @@
 ;; Code parser
 ;;==========================================================================
 ;; for cscope
-(setq *has-cscope* (not (equal nil (executable-find "cscope"))))
 (when *has-cscope* (load-file "~/.emacs.d/lisp/xcscope.el")
       (require 'xcscope)
       (cscope-setup)
