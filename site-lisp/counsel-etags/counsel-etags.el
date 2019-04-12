@@ -6,7 +6,7 @@
 ;; URL: http://github.com/redguardtoo/counsel-etags
 ;; Package-Requires: ((emacs "24.4") (counsel "0.10.0") (ivy "0.10.0"))
 ;; Keywords: tools, convenience
-;; Version: 1.8.1
+;; Version: 1.8.3
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -36,7 +36,7 @@
 ;;
 ;;   `counsel-etags-scan-code' to create tags file
 ;;   `counsel-etags-grep' to grep
-;;   `counsel-etags-grep-symbol-at-point' to grep the symbol at point
+;;   `counsel-etags-grep-current-directory' to grep in current directory
 ;;   `counsel-etags-recent-tag' to open recent tag
 ;;   `counsel-etags-find-tag' to two step tag matching use regular expression and filter
 ;;   `counsel-etags-list-tag' to list all tags
@@ -55,7 +55,7 @@
 ;;
 ;; - You can use ivy's negative pattern to filter candidates.
 ;;   For example, input "keyword1 !keyword2 keyword3" means:
-;;   "(keyword1 and (not (keyword2 or keyword3)))"
+;;   "(keyword1 and (not (or keyword2 keyword3)))"
 ;;
 ;; - `counsel-etags-extra-tags-files' contains extra tags files to parse.
 ;;   Set it like '(setq counsel-etags-extra-tags-files '("/usr/include/TAGS" "/usr/local/include/TAGS"))'
@@ -105,7 +105,7 @@ find /usr/include | ctags -e -L -"
 ;;   "Running unit test.  This is internal variable.")
 
 (defun counsel-etags-load-smart-rules(modes rule)
-  "Load MODES's smart RULES."
+  "Load MODES's smart RULE."
   (dolist (mode modes)
     (setq counsel-etags-smart-rules
           (plist-put counsel-etags-smart-rules
@@ -320,10 +320,9 @@ On Windows program path separator IS four backward slashes by default."
   :type 'boolean)
 
 (defcustom counsel-etags-update-tags-backend
-  'counsel-etags-update-tags-force
-  "The function we used to update tags file during auto-updating.
-By default, it's `counsel-etags-update-tags-force', but you can define your
-own function instead."
+  'counsel-etags-scan-dir-internal
+  "A user-defined function to update tags file during auto-updating.
+The function has same parameters as `counsel-etags-scan-dir-internal'."
   :group 'counsel-etags
   :type 'sexp)
 
@@ -373,7 +372,8 @@ Return nil if it's not found."
 
 ;;;###autoload
 (defun counsel-etags-version ()
-  (message "1.8.1"))
+  "Return version."
+  (message "1.8.3"))
 
 ;;;###autoload
 (defun counsel-etags-get-hostname ()
@@ -424,6 +424,7 @@ Return nil if it's not found."
     (add-to-list 'rlt tags-file)
     (setq counsel-etags-tags-file-history rlt)))
 
+;;;###autoload
 (defun counsel-etags-async-shell-command (command tags-file)
   "Execute string COMMAND and create TAGS-FILE asynchronously."
   (let* ((proc (start-process "Shell" nil shell-file-name shell-command-switch command)))
@@ -517,9 +518,9 @@ Return nil if it's not found."
     (when counsel-etags-debug (message "counsel-etags-get-scan-command called => find-program=%s ctags-program=%s cmd=%s" find-program ctags-program cmd))
     cmd))
 
-(defun counsel-etags-scan-dir-internal (src-dir &optional force)
-  "Create tags file from SRC-DIR.
-If FORCE is t, the command is executed without checking the timer."
+;;;###autoload
+(defun counsel-etags-scan-dir-internal (src-dir)
+  "Create tags file from SRC-DIR."
   ;; TODO save the ctags-opts into hash
   (let* ((find-program (or counsel-etags-find-program
                       (counsel-etags-guess-program "find")))
@@ -530,15 +531,13 @@ If FORCE is t, the command is executed without checking the timer."
          ;; if only ctags exists, use ctags
          ;; run find&ctags to create TAGS, `-print` is important option to filter correctly
          (cmd (counsel-etags-get-scan-command find-program ctags-program))
-         (tags-file (counsel-etags-get-tags-file-path src-dir))
-         (doit (or force (not (file-exists-p tags-file)))))
+         (tags-file (counsel-etags-get-tags-file-path src-dir)))
     (unless ctags-program
       (error "Please install Ctags before running this program!"))
-    (when counsel-etags-debug (message "counsel-etags-scan-dir-internal called => src-dir=%s force=%s find-program=%s ctags-program=%s default-directory=%s cmd=%s" src-dir force find-program ctags-program default-directory cmd))
+    (when counsel-etags-debug (message "counsel-etags-scan-dir-internal called => src-dir=%s find-program=%s ctags-program=%s default-directory=%s cmd=%s" src-dir find-program ctags-program default-directory cmd))
     ;; always update cli options
-    (when doit
-      (message "%s at %s" (if counsel-etags-debug cmd "Scan") default-directory)
-      (counsel-etags-async-shell-command cmd tags-file))))
+    (message "%s at %s" (if counsel-etags-debug cmd "Scan") default-directory)
+    (counsel-etags-async-shell-command cmd tags-file)))
 
 (defun counsel-etags-toggle-auto-update-tags ()
   "Stop/Start tags auto update."
@@ -548,21 +547,15 @@ If FORCE is t, the command is executed without checking the timer."
       (message "Tags is NOT automatically updated any more.")
     (message "Tags will be automatically updated.")))
 
-(defun counsel-etags-scan-dir (src-dir &optional force)
-  "Create tags file from SRC-DIR.
-If FORCE is t, the command is executed without checking the timer.
-If `counsel-etags-update-tags-backend' is customized, executed it to create tags file."
-  (when counsel-etags-debug (message "counsel-etags-scan-dir called => %s %s" src-dir force))
+(defun counsel-etags-scan-dir (src-dir)
+  "Create tags file from SRC-DIR."
+  (if counsel-etags-debug (message "counsel-etags-scan-dir called => %s" src-dir))
   (cond
    (counsel-etags-stop-auto-update-tags
     ;; do nothing
     )
-   ;; default backend
-   ((eq counsel-etags-update-tags-backend 'counsel-etags-update-tags-force)
-    (counsel-etags-scan-dir-internal src-dir force))
-   ;; user has customized backend
    (t
-    (funcall counsel-etags-update-tags-backend))))
+    (funcall counsel-etags-update-tags-backend src-dir))))
 
 ;;;###autoload
 (defun counsel-etags-directory-p (regex)
@@ -581,18 +574,6 @@ If `counsel-etags-update-tags-backend' is customized, executed it to create tags
   (let* ((case-fold-search nil)
          (file (or buffer-file-name default-directory "")))
     (string-match-p regex file)))
-
-;;;###autoload
-(defun counsel-etags-update-tags-force (&optional forced-tags-file)
-  "Update tags file now using default implementation."
-  (interactive)
-  (let* ((tags-file (or forced-tags-file
-                        (counsel-etags-locate-tags-file))))
-    (when tags-file
-      (counsel-etags-scan-dir (file-name-directory (file-truename tags-file)) t)
-      (run-hook-with-args 'counsel-etags-after-update-tags-hook tags-file)
-      (unless counsel-etags-quiet-when-updating-tags
-        (message "%s is updated!" tags-file)))))
 
 (defun counsel-etags-read-file (file)
   "Return FILE content."
@@ -879,6 +860,13 @@ Focus on TAGNAME if it's not nil."
   "Remember CAND whose `default-directory' is DIR."
   (add-to-list 'counsel-etags-tag-history (cons cand dir)))
 
+(defun counsel-etags--time-cost (start-time)
+  "Show time cost since START-TIME."
+  (let* ((time-passed (float-time (time-since start-time))))
+    (format "%.01f second%s"
+            time-passed
+            (if (<= time-passed 2) "" "s"))))
+
 (defun counsel-etags-open-tag-cand (tagname cands time)
   "Find TAGNAME from CANDS.  Open tags file at TIME."
   ;; mark current point for `pop-tag-mark'
@@ -891,8 +879,8 @@ Focus on TAGNAME if it's not nil."
                                    dir
                                    tagname))
      (t
-      (ivy-read (format  "Find Tag (%.01f seconds): "
-                         (float-time (time-since time)))
+      (ivy-read (format  "Find Tag (%s): "
+                         (counsel-etags--time-cost time))
                 cands
                 :action `(lambda (e)
                            (counsel-etags-remember e ,dir)
@@ -910,7 +898,7 @@ Focus on TAGNAME if it's not nil."
                                          (counsel-etags-locate-project)))
       (cond
        (src-dir
-        (counsel-etags-scan-dir src-dir t)
+        (counsel-etags-scan-dir src-dir)
         (setq tags-file (counsel-etags-get-tags-file-path src-dir)))
        (t
         (error "Can't find TAGS.  Please run `counsel-etags-scan-code'!"))))
@@ -927,7 +915,7 @@ Focus on TAGNAME if it's not nil."
                                            (or (counsel-etags-locate-project)
                                                default-directory)))))
     (when src-dir
-      (counsel-etags-scan-dir src-dir t))))
+      (counsel-etags-scan-dir src-dir))))
 
 (defun counsel-etags-positive-regex (patterns)
   "Extract positive regex from PATTERNS."
@@ -1088,10 +1076,9 @@ the tags updating might not happen."
 
        (t
         (setq counsel-etags-timer (current-time))
-        (funcall counsel-etags-update-tags-backend)
-        (message "counsel-etags took %d seconds to update TAGS!"
-                 (- (float-time (current-time))
-                    (float-time counsel-etags-timer))))))))
+        (let* ((tags-file (counsel-etags-locate-tags-file))
+               (dir (file-name-directory (file-truename tags-file))))
+          (funcall counsel-etags-update-tags-backend dir)))))))
 
 (defun counsel-etags-unquote-regex-parens (str)
   "Unquote regexp parentheses in STR."
@@ -1108,8 +1095,17 @@ the tags updating might not happen."
 
 (defun counsel-etags-read-keyword (hint)
   "Read keyword with HINT."
-  (let* ((str (if (region-active-p) (counsel-etags-selected-str)
-                (read-string hint))))
+  (let* ((str (cond
+               ((region-active-p)
+                (setq counsel-git-grep-history (add-to-list 'counsel-git-grep-history
+                                                            (counsel-etags-selected-str)))
+                (counsel-etags-selected-str))
+               (t
+                (read-from-minibuffer hint
+                                      (thing-at-point 'symbol)
+                                      nil
+                                      nil
+                                      'counsel-git-grep-history)))))
     (when str
       (cond
        ((region-active-p)
@@ -1171,21 +1167,31 @@ Extended regex is used, like (pattern1|pattern2)."
             (counsel-etags-exclude-opts use-cache)
             keyword))))
 
+(defun counsel-etags-parent-directory (level directory)
+  "Return LEVEL up parent directory of DIRECTORY."
+  (let* ((rlt directory))
+    (while (and (> level 0) (not (string= "" rlt)))
+      (setq rlt (file-name-directory (directory-file-name rlt)))
+      (setq level (1- level)))
+    (if (string= "" rlt) (setq rlt nil))
+    rlt))
+
 ;;;###autoload
-(defun counsel-etags-grep (&optional default-keyword hint)
+(defun counsel-etags-grep (&optional default-keyword hint root)
   "Grep at project root directory or current directory.
 Try to find best grep program (ripgrep, grep...) automatically.
 Extended regex like (pattern1|pattern2) is used.
 If DEFAULT-KEYWORD is not nil, it's used as grep keyword.
-If HINT is not nil, it's used as grep hint."
+If HINT is not nil, it's used as grep hint.
+ROOT is root directory to grep."
   (interactive)
   (let* ((keyword (if default-keyword default-keyword
-                    (counsel-etags-read-keyword "Enter grep pattern: ")))
-         (default-directory (file-truename (counsel-etags-locate-project)))
+                    (counsel-etags-read-keyword "Grep pattern: ")))
+         (default-directory (file-truename (or root (counsel-etags-locate-project))))
          (time (current-time))
          (cmd (counsel-etags-grep-cli keyword nil))
          (cands (split-string (shell-command-to-string cmd) "[\r\n]+" t))
-         (dir-summary (file-name-as-directory (file-name-base (directory-file-name (counsel-etags-locate-project))))))
+         (dir-summary (file-name-as-directory (file-name-base (directory-file-name default-directory)))))
 
     (if counsel-etags-debug (message "counsel-etags-grep called => %s %s %s %s" keyword default-directory cmd cands))
     (counsel-etags-put :ignore-dirs
@@ -1197,10 +1203,10 @@ If HINT is not nil, it's used as grep hint."
                        counsel-etags-opts-cache)
 
     ;; Slow down grep 10 times
-    (ivy-read (concat hint (format "Grep \"%s\" at %s (%.01f seconds): "
+    (ivy-read (concat hint (format "Grep \"%s\" at %s (%s): "
                                    keyword
                                    dir-summary
-                                   (float-time (time-since time))))
+                                   (counsel-etags--time-cost time)))
               cands
               :history 'counsel-git-grep-history ; share history with counsel
               :action `(lambda (item)
@@ -1211,14 +1217,16 @@ If HINT is not nil, it's used as grep hint."
               :caller 'counsel-etags-grep)))
 
 ;;;###autoload
-(defun counsel-etags-grep-symbol-at-point ()
-  "Similar to `counsel-etags-grep' but grep symbol at point."
-  (interactive)
-  (counsel-etags-grep (or (counsel-etags-selected-str)
-                          (thing-at-point 'symbol))))
+(defun counsel-etags-grep-current-directory (&optional level)
+  "Grep current directory or LEVEL up parent directory."
+  (interactive "P")
+  (unless level (setq level 0))
+  (let* ((root (counsel-etags-parent-directory level default-directory)))
+    (counsel-etags-grep nil nil root)))
 
 ;; {{ occur setup
 (defun counsel-etags-tag-occur-api (items)
+  "Create occur buffer for ITEMS."
   (unless (eq major-mode 'ivy-occur-grep-mode)
     (ivy-occur-grep-mode))
   ;; we use regex in elisp, don't unquote regex
