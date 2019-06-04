@@ -65,17 +65,18 @@
 [_L_] Local groups        [_\\^_] List servers
 [_c_] Mark all read       [_m_] Compose new mail
 [_G_] Search mails (G G)  [_#_] Mark mail
-[_b_] Switch Gnus buffer
+[_b_] Switch Gnus buffer  [_E_] Extract email address
 "
        ("A" gnus-group-list-active)
        ("L" gnus-group-list-all-groups)
        ("c" gnus-topic-catchup-articles)
-       ("G" gnus-group-make-nnir-group)
+       ("G" dianyou-group-make-nnir-group)
        ("b" my-switch-gnus-buffer)
        ("g" gnus-group-get-new-news)
        ("^" gnus-group-enter-server-mode)
        ("m" gnus-group-new-mail)
        ("#" gnus-topic-mark-topic)
+       ("E" dianyou-summary-extract-email-address)
        ("q" nil))
      ;; y is not used by default
      (define-key gnus-group-mode-map "y" 'hydra-gnus-group/body)))
@@ -89,10 +90,10 @@
 [_e_] Resend (S D e)                [_h_] Hide thread
 [_r_] Reply                         [_n_] Refresh (/ N)
 [_R_] Reply with original           [_!_] Mail -> disk
-[_w_] Reply all (S w)               [_p_] Disk -> mail
+[_w_] Reply all (S w)               [_d_] Disk -> mail
 [_W_] Reply all with original (S W) [_c_] Read all
 [_G_] Search current folder         [_#_] Mark
-[_b_] Switch Gnus buffer
+[_b_] Switch Gnus buffer            [_A_] Show Raw article
 "
        ("s" gnus-summary-show-thread)
        ("h" gnus-summary-hide-thread)
@@ -100,7 +101,7 @@
        ("F" gnus-summary-mail-forward)
        ("!" gnus-summary-tick-article-forward)
        ("b" my-switch-gnus-buffer)
-       ("p" gnus-summary-put-mark-as-read)
+       ("d" gnus-summary-put-mark-as-read-next)
        ("c" gnus-summary-catchup-and-exit)
        ("e" gnus-summary-resend-message-edit)
        ("R" gnus-summary-reply-with-original)
@@ -108,7 +109,8 @@
        ("W" gnus-summary-wide-reply-with-original)
        ("w" gnus-summary-wide-reply)
        ("#" gnus-topic-mark-topic)
-       ("G" gnus-summary-make-nnir-group)
+       ("A" gnus-summary-show-raw-article)
+       ("G" dianyou-group-make-nnir-group)
        ("q" nil))
      ;; y is not used by default
      (define-key gnus-summary-mode-map "y" 'hydra-gnus-summary/body)))
@@ -130,7 +132,7 @@
        ("R" gnus-article-reply-with-original)
        ("w" gnus-article-wide-reply)
        ("W" gnus-article-wide-reply-with-original)
-       ("o" gnus-mime-save-part)
+       ("o" (lambda () (interactive) (let* ((file (gnus-mime-save-part))) (when file (copy-yank-str file)))))
        ("v" w3mext-open-with-mplayer)
        ("d" w3mext-download-rss-stream)
        ("b" w3mext-open-link-or-image-or-url)
@@ -146,15 +148,18 @@
   '(progn
      (defhydra hydra-message (:color blue)
   "
-[_c_] Complete mail address
+[_c_] Complete mail address [_H_] convert to html mail
 [_a_] Attach file
 [_s_] Send mail (C-c C-c)
 [_b_] Switch Gnus buffer
+[_i_] Insert email address
 "
        ("c" counsel-bbdb-complete-mail)
        ("a" mml-attach-file)
        ("s" message-send-and-exit)
        ("b" my-switch-gnus-buffer)
+       ("i" dianyou-insert-email-address-from-received-mails)
+       ("H" org-mime-htmlize)
        ("q" nil))))
 
 (defun message-mode-hook-hydra-setup ()
@@ -236,12 +241,14 @@ _d_ debug-on-error:    %`debug-on-error
 _f_ auto-fill-mode:    %`auto-fill-function
 _t_ truncate-lines:    %`truncate-lines
 _w_ whitespace-mode:   %`whitespace-mode
+_i_ indent-tabs-mode:   %`indent-tabs-mode
 "
   ("a" abbrev-mode nil)
   ("d" toggle-debug-on-error nil)
   ("f" auto-fill-mode nil)
   ("t" toggle-truncate-lines nil)
   ("w" whitespace-mode nil)
+  ("i" (lambda () (interactive) (setq indent-tabs-mode (not indent-tabs-mode))) nil)
   ("q" nil "quit"))
 ;; Recommended binding:
 (global-set-key (kbd "C-c C-v") 'hydra-toggle/body)
@@ -401,7 +408,7 @@ _q_ cancel
   ("h" w3mext-hacker-search)
   ("m" lookup-doc-in-man)
 
-  (";" avy-goto-char-2 )
+  (";" ace-pinyin-jump-char-2)
   ("w" avy-goto-word-or-subword-1 )
   ("a" avy-goto-char-timer )
 

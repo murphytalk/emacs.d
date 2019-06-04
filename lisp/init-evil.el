@@ -495,7 +495,6 @@ If the character before and after CH is space or tab, CH is NOT slash"
  "ts" 'evilmr-tag-selected-region ;; recommended
  "cby" 'cb-switch-between-controller-and-view
  "cbu" 'cb-get-url-from-controller
- "ht" 'counsel-etags-find-tag-at-point ; better than find-tag C-]
  "rt" 'counsel-etags-recent-tag
  "ft" 'counsel-etags-find-tag
  "mm" 'counsel-evil-goto-global-marker
@@ -575,7 +574,6 @@ If the character before and after CH is space or tab, CH is NOT slash"
  "uu" 'winner-undo
  "UU" 'winner-redo
  "to" 'toggle-web-js-offset
- "sl" 'sort-lines
  "fs" 'ffip-save-ivy-last
  "fr" 'ffip-ivy-resume
  "fc" 'cp-ffip-ivy-last
@@ -775,7 +773,7 @@ If the character before and after CH is space or tab, CH is NOT slash"
  ;;   '(progn
  ;;      (set-face-attribute 'avy-lead-face-0 nil :foreground "black")
  ;;      (set-face-attribute 'avy-lead-face-0 nil :background "#f86bf3")))
- ";" 'avy-goto-char-2
+ ";" 'ace-pinyin-jump-char-2
  "w" 'avy-goto-word-or-subword-1
  "a" 'avy-goto-char-timer
  "db" 'sdcv-search-pointer ; in buffer
@@ -850,12 +848,13 @@ If the character before and after CH is space or tab, CH is NOT slash"
   (interactive "p")
   (unless (featurep 'evil-nerd-commenter) (require 'evil-nerd-commenter))
   (let* ((paragraph-region (evilnc--get-one-paragraph-region))
-         (html-p (or (save-excursion
-                       (sgml-skip-tag-backward 1)
-                       (my-current-line-html-p paragraph-region))
-                     (save-excursion
-                       (sgml-skip-tag-forward 1)
-                       (my-current-line-html-p paragraph-region)))))
+         (html-p (ignore-errors
+                   (or (save-excursion
+                         (sgml-skip-tag-backward 1)
+                         (my-current-line-html-p paragraph-region))
+                       (save-excursion
+                         (sgml-skip-tag-forward 1)
+                         (my-current-line-html-p paragraph-region))))))
     (if html-p (evilnc-comment-or-uncomment-html-paragraphs num)
       (evilnc-comment-or-uncomment-paragraphs num))))
 
