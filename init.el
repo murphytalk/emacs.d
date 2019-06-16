@@ -187,15 +187,17 @@
       (load my-custom-init t nil))
 
   ;; {{ `evil-matchit' could use setup in".custom.el"
-  (when my-use-m-for-matchit
-    (setq evilmi-shortcut "m"))
-  (global-evil-matchit-mode 1)
+  ;(when my-use-m-for-matchit
+  ;  (setq evilmi-shortcut "m"))
+  ;(global-evil-matchit-mode 1)
   ;; }}
 
   ;; @see https://www.reddit.com/r/emacs/comments/4q4ixw/how_to_forbid_emacs_to_touch_configuration_files/
   ;; See `custom-file' for details.
-  (load (setq custom-file (expand-file-name "~/.emacs.d/custom-set-variables.el")) t t))
-
+  (setq my-custom-file (expand-file-name "~/.emacs.d/custom.el"))
+  (if (file-exists-p my-custom-file)
+      (load (setq custom-file (expand-file-name "~/.emacs.d/custom-set-variables.el")) t t))
+)
 (setq gc-cons-threshold best-gc-cons-threshold)
 
 (when (require 'time-date nil t)
