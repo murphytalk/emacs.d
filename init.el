@@ -167,7 +167,7 @@
   ;; misc has some crucial tools I need immediately
   (require-init 'init-misc)
 
-  (require-init 'init-emacs-w3m)
+;  (require-init 'init-emacs-w3m)
   (require-init 'init-hydra)
   (require-init 'init-shackle)
   (require-init 'init-dired)

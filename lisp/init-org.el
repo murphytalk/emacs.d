@@ -99,17 +99,17 @@
        (interactive "P")
        (org-agenda arg "n"))
 
-     (defadvice org-open-at-point (around org-open-at-point-choose-browser activate)
-       "\"C-u M-x org-open-at-point\" to open link with `browse-url-generic-program'.
-It's value could be customized liked \"/usr/bin/firefox\".
-\"M-x org-open-at-point\" to open the url with embedded emacs-w3m."
-       (let* ((browse-url-browser-function
-               (cond
-                ;; open with `browse-url-generic-program'
-                ((equal (ad-get-arg 0) '(4)) 'browse-url-generic)
-                ;; open with w3m
-                (t 'w3m-browse-url))))
-         ad-do-it))
+;     (defadvice org-open-at-point (around org-open-at-point-choose-browser activate)
+;       "\"C-u M-x org-open-at-point\" to open link with `browse-url-generic-program'.
+;It's value could be customized liked \"/usr/bin/firefox\".
+;\"M-x org-open-at-point\" to open the url with embedded emacs-w3m."
+;       (let* ((browse-url-browser-function
+;               (cond
+;                ;; open with `browse-url-generic-program'
+;                ((equal (ad-get-arg 0) '(4)) 'browse-url-generic)
+;                ;; open with w3m
+;                (t 'w3m-browse-url))))
+;         ad-do-it))
 
      (defadvice org-publish (around org-publish-advice activate)
        "Stop running `major-mode' hook when `org-publish'."
