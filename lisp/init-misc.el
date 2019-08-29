@@ -162,7 +162,7 @@
 
 (defun lookup-doc-in-man ()
   (interactive)
-  (man (concat "-k " (my-use-selected-string-or-ask ""))))
+  (man (concat "-k " (my-use-selected-string-or-ask))))
 
 ;; @see http://blog.binchen.org/posts/effective-code-navigation-for-web-development.html
 ;; don't let the cursor go into minibuffer prompt
@@ -638,7 +638,7 @@ If step is -1, go backward."
 
 (defun diff-region-tag-selected-as-a ()
   "Select a region to compare."
-  (interactive "P")
+  (interactive)
   (when (region-active-p)
     (let* (tmp buf)
       ;; select lines
@@ -1371,15 +1371,24 @@ Including indent-buffer, which should not be called automatically on save."
 (add-hook 'nov-mode-hook 'nov-mode-hook-setup)
 ;; }}
 
+(defun line-number-at-position (pos)
+  "Returns the line number for position `POS'."
+  (save-restriction
+    (widen)
+    (save-excursion
+      (goto-char pos)
+      (+ 1 (count-lines (point-min) (line-beginning-position 1))))))
+
 (defun narrow-to-region-indirect-buffer-maybe (start end use-indirect-buffer)
   "Indirect buffer could multiple widen on same file."
   (if (region-active-p) (deactivate-mark))
   (if use-indirect-buffer
       (with-current-buffer (clone-indirect-buffer
                             (generate-new-buffer-name
-                             (concat (buffer-name) "-indirect-"
-                                     (number-to-string start) "-"
-                                     (number-to-string end)))
+                             (format "%s-indirect-:%s-:%s"
+                                     (buffer-name)
+                                     (line-number-at-position start)
+                                     (line-number-at-position end)))
                             'display)
         (narrow-to-region start end)
         (goto-char (point-min)))
@@ -1415,4 +1424,21 @@ If use-indirect-buffer is not nil, use `indirect-buffer' to hold the widen conte
         (t (error "Please select a region to narrow to"))))
 ;; }}
 
+;; {{ octave
+(add-auto-mode 'octave-mode "\\.m$")
+(add-hook 'octave-mode-hook
+          (lambda ()
+            (abbrev-mode 1)
+            (auto-fill-mode 1)
+            (if (eq window-system 'x)
+                (font-lock-mode 1))))
+;; }}
+
+;; {{ wgrep setup
+(eval-after-load 'wgrep
+  '(progn
+     ;; save the change after wgrep finishes the job
+     (setq wgrep-auto-save-buffer t)
+     (setq wgrep-too-many-file-length 2024)))
+;; }}
 (provide 'init-misc)
