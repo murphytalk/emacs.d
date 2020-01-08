@@ -1,16 +1,21 @@
 ;; -*- coding: utf-8; lexical-binding: t; -*-
 
-;; elisp version of try...catch...finally
-(defmacro safe-wrap (fn &rest clean-up)
-  `(unwind-protect
-       (let (retval)
-         (condition-case ex
-             (setq retval (progn ,fn))
-           ('error
-            (message (format "Caught exception: [%s]" ex))
-            (setq retval (cons 'exception (list ex)))))
-         retval)
-     ,@clean-up))
+(defun run-cmd-and-replace-region (cmd)
+  "Run CMD in shell on selected region or whole buffer and replace it with cli output."
+  (let* ((orig-point (point))
+         (b (if (region-active-p) (region-beginning) (point-min)))
+         (e (if (region-active-p) (region-end) (point-max))))
+    (shell-command-on-region b e cmd nil t)
+    (goto-char orig-point)))
+
+(defun my-use-tags-as-imenu-function-p ()
+  "Can use tags file to build imenu function"
+  (unless (featurep 'counsel-etags) (require 'counsel-etags))
+  (and (locate-dominating-file default-directory "TAGS")
+       ;; ctags needs extra setup to extract typescript tags
+       (file-exists-p counsel-etags-ctags-options-file)
+       (memq major-mode '(typescript-mode
+                          js-mode))))
 
 (defun my-add-subdirs-to-load-path (my-lisp-dir)
   "Add sub-directories under MY-LISP-DIR into `load-path'."
@@ -125,11 +130,11 @@ If N is nil, use `ivy-mode' to browse `kill-ring'."
   (buffer-substring-no-properties (line-beginning-position)
                                   (if line-end line-end (line-end-position))))
 
-(defun my-is-one-line (b e)
+(defun my-is-in-one-line (b e)
   (save-excursion
     (goto-char b)
     (and (<= (line-beginning-position) b)
-         (<= e (1+ (line-end-position))))))
+         (<= e (line-end-position)))))
 
 (defun my-buffer-str ()
   (buffer-substring-no-properties (point-min) (point-max)))
@@ -143,7 +148,6 @@ If N is nil, use `ivy-mode' to browse `kill-ring'."
     (if (or (not hint) (string= "" hint)) (thing-at-point 'symbol)
       (read-string hint))))
 
-;; Delete the current file
 (defun delete-this-file ()
   "Delete the current file, and kill the buffer."
   (interactive)
@@ -153,10 +157,6 @@ If N is nil, use `ivy-mode' to browse `kill-ring'."
     (delete-file (buffer-file-name))
     (kill-this-buffer)))
 
-
-;;----------------------------------------------------------------------------
-;; Rename the current file
-;;----------------------------------------------------------------------------
 (defun rename-this-file-and-buffer (new-name)
   "Renames both current buffer and file it's visiting to NEW-NAME."
   (interactive "sNew name: ")
@@ -171,25 +171,6 @@ If N is nil, use `ivy-mode' to browse `kill-ring'."
         (rename-buffer new-name)
         (set-visited-file-name new-name)
         (set-buffer-modified-p nil)))))
-
-;;----------------------------------------------------------------------------
-;; Browse current HTML file
-;;----------------------------------------------------------------------------
-(defun browse-current-file ()
-  "Open the current file as a URL using `browse-url'."
-  (interactive)
-  (browse-url-generic (concat "file://" (buffer-file-name))))
-
-(defmacro with-selected-frame (frame &rest forms)
-  (let ((prev-frame (gensym))
-        (new-frame (gensym)))
-    `(progn
-       (let* ((,new-frame (or ,frame (selected-frame)))
-              (,prev-frame (selected-frame)))
-         (select-frame ,new-frame)
-         (unwind-protect
-             (progn ,@forms)
-           (select-frame ,prev-frame))))))
 
 (defvar load-user-customized-major-mode-hook t)
 (defvar cached-normal-file-full-path nil)
@@ -251,7 +232,7 @@ you can '(setq my-mplayer-extra-opts \"-ao alsa -vo vdpau\")'.")
     rlt))
 
 (defun my-guess-image-viewer-path (file &optional is-stream)
-  (let ((rlt "mplayer"))
+  (let* ((rlt "mplayer"))
     (cond
      (*is-a-mac*
       (setq rlt
@@ -267,8 +248,8 @@ you can '(setq my-mplayer-extra-opts \"-ao alsa -vo vdpau\")'.")
                     file))))
     rlt))
 
-
 (defun my-gclip ()
+  "Get clipboard content."
   (let* ((powershell-program (executable-find "powershell.exe")))
     (cond
      ((and (memq system-type '(gnu gnu/linux gnu/kfreebsd))
@@ -281,6 +262,7 @@ you can '(setq my-mplayer-extra-opts \"-ao alsa -vo vdpau\")'.")
       (xclip-get-selection 'clipboard)))))
 
 (defun my-pclip (str-val)
+  "Set clipboard content."
   (let* ((win64-clip-program (executable-find "clip.exe")))
     (cond
      ((and win64-clip-program (memq system-type '(gnu gnu/linux gnu/kfreebsd)))
@@ -291,42 +273,10 @@ you can '(setq my-mplayer-extra-opts \"-ao alsa -vo vdpau\")'.")
       (xclip-set-selection 'clipboard str-val)))))
 ;; }}
 
-(defun make-concated-string-from-clipboard (concat-char)
-  (let* ((str (replace-regexp-in-string "'" "" (upcase (my-gclip))))
-         (rlt (replace-regexp-in-string "[ ,-:]+" concat-char str)))
-    rlt))
-
-;; {{ diff region SDK
-(defun diff-region-exit-from-certain-buffer (buffer-name)
-  (bury-buffer buffer-name)
-  (winner-undo))
-
-(defmacro diff-region-open-diff-output (content buffer-name)
-  `(let ((rlt-buf (get-buffer-create ,buffer-name)))
-    (save-current-buffer
-      (switch-to-buffer-other-window rlt-buf)
-      (set-buffer rlt-buf)
-      (erase-buffer)
-      (insert ,content)
-      ;; `ffip-diff-mode' is more powerful than `diff-mode'
-      (ffip-diff-mode)
-      (goto-char (point-min))
-      ;; Evil keybinding
-      (if (fboundp 'evil-local-set-key)
-          (evil-local-set-key 'normal "q"
-                              (lambda ()
-                                (interactive)
-                                (diff-region-exit-from-certain-buffer ,buffer-name))))
-      ;; Emacs key binding
-      (local-set-key (kbd "C-c C-c")
-                     (lambda ()
-                       (interactive)
-                       (diff-region-exit-from-certain-buffer ,buffer-name))))))
-;; }}
-
 (defun should-use-minimum-resource ()
+  "Some files should use minimum resource (no syntax highlight, no line number display)."
   (and buffer-file-name
-       (string-match-p "\.\\(mock\\|min\\)\.js" buffer-file-name)))
+       (string-match-p "\.\\(mock\\|min\\|bundle\\)\.js" buffer-file-name)))
 
 (defun my-async-shell-command (command)
   "Execute string COMMAND asynchronously."
@@ -340,14 +290,35 @@ you can '(setq my-mplayer-extra-opts \"-ao alsa -vo vdpau\")'.")
                                       (unless (string= (substring signal 0 -1) "finished")
                                         (message "Failed to run \"%s\"." ,command))))))))
 
-(defvar f-count nil)
-(defun f-incf (&optional first incr repeat)
-  (let* ((index (floor (/ (cl-incf f-count incr) (or repeat 1)))))
-    (+ (or first 1) (* (or incr 1) index))))
+;; reply y/n instead of yes/no
+(fset 'yes-or-no-p 'y-or-n-p)
+;; {{ code is copied from https://liu233w.github.io/2016/09/29/org-python-windows.org/
 
-(defun f-each (ls &optional repeat)
-  (let ((index (floor (/ (cl-incf f-count 0) (or repeat 1)))))
-    (if (< index (length ls)) (elt ls index)
-      (keyboard-quit))))
+(defun my-setup-language-and-encode (language-name coding-system)
+  "Set up LANGUAGE-NAME and CODING-SYSTEM at Windows.
+For example,
+- \"English\" and 'utf-16-le
+- \"Chinese-GBK\" and 'gbk"
+  (cond
+   ((eq system-type 'windows-nt)
+    (set-language-environment language-name)
+    (prefer-coding-system 'utf-8)
+    (set-terminal-coding-system coding-system)
+
+    (modify-coding-system-alist 'process "*" coding-system)
+    (defun my-windows-shell-mode-coding ()
+      (set-buffer-file-coding-system coding-system)
+      (set-buffer-process-coding-system coding-system coding-system))
+    (add-hook 'shell-mode-hook #'my-windows-shell-mode-coding)
+    (add-hook 'inferior-python-mode-hook #'my-windows-shell-mode-coding)
+
+    (defadvice org-babel-execute:python (around org-babel-execute:python-hack activate)
+      ;; @see https://github.com/Liu233w/.spacemacs.d/issues/6
+      (let* ((coding-system-for-write 'utf-8))
+        ad-do-it)))
+   (t
+    (set-language-environment "UTF-8")
+    (prefer-coding-system 'utf-8))))
+;; }}
 
 (provide 'init-utils)

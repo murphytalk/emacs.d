@@ -5,6 +5,12 @@
 
 (setq-default js2-use-font-lock-faces t
               js2-mode-must-byte-compile nil
+              ;; {{ comment indention in modern frontend development
+              javascript-indent-level 2
+              js-indent-level 2
+              css-indent-offset 2
+              typescript-indent-level 2
+              ;; }}
               js2-strict-trailing-comma-warning nil ; it's encouraged to use trailing comma in ES6
               js2-idle-timer-delay 0.5 ; NOT too big for real time syntax check
               js2-auto-indent-p nil
@@ -55,8 +61,8 @@
     (my-common-js-setup)
     (setq imenu-create-index-function 'mo-js-imenu-make-index)
     (flymake-mode 1)))
-
 (add-hook 'js-mode-hook 'mo-js-mode-hook)
+
 (eval-after-load 'js-mode
   '(progn
      ;; '$' is part of variable name like '$item'
@@ -320,10 +326,7 @@ Merge RLT and EXTRA-RLT, items in RLT has *higher* priority."
 INDENT-SIZE decide the indentation level.
 `sudo pip install jsbeautifier` to install js-beautify.'"
   (interactive "P")
-  (let* ((orig-point (point))
-         (b (if (region-active-p) (region-beginning) (point-min)))
-         (e (if (region-active-p) (region-end) (point-max)))
-         (js-beautify (if (executable-find "js-beautify") "js-beautify"
+  (let* ((js-beautify (if (executable-find "js-beautify") "js-beautify"
                         "jsbeautify")))
     ;; detect indentation level
     (unless indent-size
@@ -335,13 +338,10 @@ INDENT-SIZE decide the indentation level.
                          (t
                           js2-basic-offset))))
     ;; do it!
-    (shell-command-on-region b e
-                             (concat "js-beautify"
-                                     " --stdin "
-                                     " --jslint-happy --brace-style=end-expand --keep-array-indentation "
-                                     (format " --indent-size=%d " indent-size))
-                             nil t)
-    (goto-char orig-point)))
+    (run-cmd-and-replace-region (concat "js-beautify"
+                                        " --stdin "
+                                        " --jslint-happy --brace-style=end-expand --keep-array-indentation "
+                                        (format " --indent-size=%d " indent-size)))))
 ;; }}
 
 ;; {{ js-comint
@@ -353,6 +353,10 @@ INDENT-SIZE decide the indentation level.
 
 ;; Latest rjsx-mode does not have indentation issue
 ;; @see https://emacs.stackexchange.com/questions/33536/how-to-edit-jsx-react-files-in-emacs
+
+(defun typescript-mode-hook-setup ()
+  (setq imenu-create-index-function 'mo-js-imenu-make-index))
+(add-hook 'typescript-mode-hook 'typescript-mode-hook-setup)
 
 (setq-default js2-additional-externs
               '("$"

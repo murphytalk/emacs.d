@@ -14,7 +14,7 @@
 - [[#installation][Installation]]
   - [[#install-in-normal-way][Install in normal way]]
   - [[#install-stable-version-optional][Install stable version (OPTIONAL)]]
-  - [[#third-party-command-line-program-optional][Third party command line program (OPTIONAL)]]
+  - [[#third-party-programs-optional][Third party programs (OPTIONAL)]]
 - [[#tutorial-optional][Tutorial (OPTIONAL)]]
   - [[#basic-tutorial][Basic tutorial]]
   - [[#evil-mode-tutorial][Evil-mode tutorial]]
@@ -23,7 +23,11 @@
   - [[#quick-start][Quick start]]
   - [[#key-bindings][Key bindings]]
 - [[#faq][FAQ]]
+  - [[#locked-packages][Locked packages]]
+  - [[#how-to-install-new-packages][How to install new packages?]]
+  - [[#git-blame-current-line][Git blame current line]]
   - [[#saveload-windows-layout][Save/Load windows layout]]
+  - [[#use-this-configuration-as-merge-tool-for-git][Use this configuration as merge tool for Git]]
   - [[#default-terminal-shell][Default terminal shell]]
   - [[#override-default-setup][Override default setup]]
   - [[#code-navigation-and-auto-completion][Code navigation and auto-completion]]
@@ -42,7 +46,6 @@
   - [[#key-bindings-doesnt-work][Key bindings doesn't work?]]
   - [[#org-mode][Org-mode]]
   - [[#macos-user][macOS user?]]
-  - [[#locked-packages][Locked packages]]
   - [[#customize-global-variables][Customize global variables]]
   - [[#opensave-files-with-counselivy][Open/Save files with Counsel/Ivy]]
   - [[#windows][Windows]]
@@ -114,7 +117,7 @@ No worries. You could answer "YES" to the question "Switch to faster package rep
 Now you are using local package repository =~/projs/melpa=.
 
 You can switch to online repositories like http://elpa.gnu.org or http://melpa.org by modifying =~/.emacs.d/lisp/init-elpa.el=.
-** Third party command line program (OPTIONAL)
+** Third party programs (OPTIONAL)
 *** Install
 Most command line programs can be installed through =default package manager=.
 
@@ -124,7 +127,7 @@ Most command line programs can be installed through =default package manager=.
 - any package manager at Linux (=apt= on Debian/Ubuntu, =yum= on Redhat, =pacman= on Arch, =emerge= on Gentoo ...)
 
 Some package managers allow you to install the program for current user. For example, python package manager =pip= has the option "[[https://packaging.python.org/tutorials/installing-packages/][--user]]".
-*** List of command line programs
+*** List of programs
 These programs are *OPTIONAL*.
 
 Please ignore error message related to command line programs. For example, if =aspell= and =hunspell= are not installed, you can ignore all the flyspell error messages.
@@ -170,7 +173,7 @@ ACT
 
 Hunspell's default personal English dictionary is =$HOME/.hunspell_en_US=. The file format is same as aspell.
 **** tidy
-- Required by =web-mode= for syntax check. It's also required by =tidy.el= for html formatting
+- Required by =web-mode= for syntax check. It's also required by the command =my-tidy-html= for html formatting
 **** identify from [[http://www.imagemagick.org/][ImageMagick]]
 - Required by =org-mode= to export org file to odt contain images
 **** zip and unzip
@@ -194,7 +197,7 @@ Hunspell's default personal English dictionary is =$HOME/.hunspell_en_US=. The f
 - Required by =flymake=
 **** [[https://ctags.io/][Universal Ctags (recommended)]] or [[http://ctags.sourceforge.net][Exuberant CTags]]
 - It creates tags file for code navigation and code completion
-- Required by many tags related packages (=xref=, =counsel-etags=, =company-etags= from =company-mode=, etc)
+- Required by many tags related packages (=xref=, =counsel-etags=, =company-ctags= from =company-mode=, etc)
 - See [[http://blog.binchen.org/?p=1057][How to use ctags in Emacs effectively]]
 **** [[http://www.gnu.org/software/global][GNU Global]]
 - Required by [[https://github.com/syohex/emacs-counsel-gtags][counsel-gtags]] and =company-gtags= from =company-mode=
@@ -222,10 +225,14 @@ Hunspell's default personal English dictionary is =$HOME/.hunspell_en_US=. The f
 - Tweak environment variable PATH so Emacs find ripgrep
 **** [[http://www.sbcl.org/][sbcl]]
 - Required by [[https://common-lisp.net/project/slime/][SLIME: The Superior Lisp Interaction Mode for Emacs]]
+**** ffmpeg
+- Some dired commands use ffmpeg to process video/audio
 **** LanguageTool
 It's Grammar, Style and Spell Checker
 - Download from [[https://languagetool.org/download/LanguageTool-stable.zip]].
 - Used by [[https://github.com/mhayashi1120/Emacs-langtool][Langtool]. Check its README for usage
+**** [[https://github.com/stsquad/emacs_chrome][edit browser's text area with Emacs]]
+Please install corresponding Chrome/Firefox addons.
 * Tutorial (OPTIONAL)
 Knowledge of Linux/Unix is required. At least you should know the meanings of "environment variable", "shell", "stdin", "stdout", "man", "info".
 ** Basic tutorial
@@ -269,7 +276,7 @@ Run =M-x counsel-etags-grep= to search text (grep) in project. Project root is a
 
 Run =M-x find-file-in-project-by-selected= from =find-file-in-project= to find file in project. Project root is automatically detected. You can also add one line setup in =.emacs= like =(setq ffip-project-root "~/proj1/")=. 
 
-Code auto-completion works out of box by using tags file created by Ctags. You need run =counsel-etags= at least once to fire up Ctags. =company-etags= from =company-mode= provides the candidates for auto completion. No manual setup is required.
+Code auto-completion works out of box by using tags file created by Ctags. You need run =counsel-etags= at least once to fire up Ctags. =company-ctags= from =company-mode= provides the candidates for auto completion. No manual setup is required.
 
 Please [[https://en.wikipedia.org/wiki/Grep][grep]] in the directory =~/.emacs.d/lisp= if you have any further questions on setup.
 ** Key bindings
@@ -285,9 +292,48 @@ Besides, "[[http://blog.binchen.org/posts/how-to-be-extremely-efficient-in-emacs
 
 Press =kj= to escape from =evil-insert-state= and everything else in Emacs. It's much more efficient than =ESC= in Vim or =C-g= in Emacs. Search =evil-escape= in =init-evil.el= for details.
 * FAQ
+** Locked packages
+Some packages are so important to my workflow that they are locked.
+
+Those packages are placed at =~/.emacs.d/site-lisp=.
+
+They will not be upgraded by ELPA.emacs.d/site-lisp= at first.
+** How to install new packages?
+I only use two package repositories,
+- [[https://stable.melpa.org]] (holding stable packages)
+- [[https://melpa.org]] (holding latest but unstable packages)
+
+If a package named =MY-PKG= exists in the stable repository, you only need one line setup,
+#+begin_src elisp
+(require-package 'MY-PKG)
+#+end_src
+
+This line could be placed in =~/.emacs.d/lisp/init-elpa.el= or =~/.custom.el=.
+
+You'd better place everything related to =MY-PKG= into =~/.custom.el= so the main stream change won't impact your own configuration.
+
+If the package does not exist in the stable repository, modify =melpa-include-packages= in =~/.emacs.d/lisp/init-elpa.el= first.
+
+I encourage you to read =init-elpa.el= to understand how packages are managed if you are good at Emacs Lisp, 
+** Git blame current line
+Run =vc-msg-show=.
+
+If you select a region inside current line, the *correct commit which submits the selected snippet* is displayed instead of the latest commit touch the whole line.
 ** Save/Load windows layout
 =SPC s s= or =M-x wg-create-workgrou= to save windows layout.
 =SPC l l= or =M-x my-wg-switch-workgroup= to load windows layout.
+** Use this configuration as merge tool for Git
+This configuration might be the most efficient and most powerful merge tool for VCS.
+Insert below configuration into =~/.gitconfig=,
+#+begin_src javascript
+[mergetool.ediff]
+# use git mergetool ediff to resolve conflicts
+cmd = emacs -nw -Q --eval \"(setq startup-now t)\" -l \"~/.emacs.d/init.el\" --eval \"(progn (setq ediff-quit-hook 'kill-emacs) (if (file-readable-p \\\"$BASE\\\") (ediff-merge-files-with-ancestor \\\"$LOCAL\\\" \\\"$REMOTE\\\" \\\"$BASE\\\" nil \\\"$MERGED\\\") (ediff-merge-files \\\"$LOCAL\\\" \\\"$REMOTE\\\" nil \\\"$MERGED\\\")))\"
+#+end_src
+
+Then run =git mergetool -t ediff= to resolve conflicts.
+
+Here is [[https://gist.github.com/redguardtoo/d4ecd51f785bd117a6a0][my ~/.gitconfig]]. You can use [[https://github.com/redguardtoo/test-git-mergetool]] to practice.
 ** Default terminal shell
 You can customize =my-term-program= whose default value is =/bin/bash=. It's used by =ansi-term= and =multi-term=.
 ** Override default setup
@@ -417,7 +463,7 @@ Please note [[http://emacswiki.org/emacs/ParEdit][paredit-mode]] is enabled when
 ** Use [[https://github.com/Malabarba/smart-mode-line][smart-mode-line]] or [[https://github.com/milkypostman/powerline][powerline]]?
 Comment out =(require 'init-modeline)= in init.el at first.
 ** Key bindings doesn't work?
-Other desktop applications may intercept the key bindings. For example, [[https://github.com/redguardtoo/emacs.d/issues/320][reported QQ on windows 8 can intercept "M-x"]].
+Other desktop applications may intercept the key bindings. For example, [[https://github.com/redguardtoo/emacs.d/issues/320][it's reported QQ on windows 8 can intercept "M-x"]].
 ** Org-mode
 Press =M-x org-version=, then read corresponding online manual to set up.
 
@@ -428,12 +474,6 @@ Run =M-x org-open-at-point= to open link under cursor. Http link will be opened 
 Please replace legacy Emacs 22 and ctags with the new versions.
 
 The easiest way is change [[https://en.wikipedia.org/wiki/PATH_(variable)][Environment variable PATH]].
-** Locked packages
-Some packages are so important to my workflow that they are locked.
-
-Those packages are placed at =~/.emacs.d/site-lisp=.
-
-They will not be upgraded by ELPA.emacs.d/site-lisp= at first.
 ** Customize global variables
 Some variables are hard coded so you cannot =M-x customize= to modify them.
 
@@ -448,7 +488,7 @@ Keep pressing =C-M-j= to ignore candidates and open/save files using current inp
 
 You can also press =M-o= to apply other action on selected file. See [[https://oremacs.com/2015/07/23/ivy-multiaction/]] for details.
 ** Windows
-I strongly suggest [[http://www.cygwin.com/][Cygwin]] version of Emacs. Native Windows version is fine if it knows how to find the third party command line programs which could be installed through Cygwin. Please add =C:\Cygwin64\bin= to environment variable =PATH= so Emacs can detect the programs automatically.
+I strongly suggest [[http://www.cygwin.com/][Cygwin]] version of Emacs. Native version of Emacs should know how to find third party command line programs from Cygwin. I suggest adding =C:\Cygwin64\bin= to environment variable =PATH= so Emacs can detect the programs automatically.
 
 By default, environment variable =HOME= points to the directory =C:\Users\<username>= on Windows 7+. You need copy the folder =.emacs.d= into that directory. Or you can change =HOME=.
 ** Yasnippet
@@ -502,15 +542,15 @@ You can use other backends instead of =clang=. For example, you can use =company
 ** Auto-completion for other languages
 It's similar to C++ setup. Since GNU Global supports many popular languages, you can use =company-gtags=.
 
-For languages GNU Global doesn't support, you can fall back to =company-etags= and [[https://en.wikipedia.org/wiki/Ctags][Ctags]]. Ctags configuration file is =~/.ctags=.
+For languages GNU Global doesn't support, you can fall back to =company-ctags= and [[https://en.wikipedia.org/wiki/Ctags][Ctags]]. Ctags configuration file is =~/.ctags=.
 
 You can also complete line by =M-x eacl-complete-line= and complete multi-lines statement by =M-x eacl-complete-multiline=.
 ** Chinese Input Method Editor
-Please note pyim is already built into this setup. You don't need install it through ELPA.
+Please note pyim is already built into this setup. You need not install it through ELPA.
 
 Run =M-x toggle-input-method= to toggle input method [[https://github.com/tumashu/pyim][pyim]].
 
-Dictionaries with ".pyim" extension under the directory  =~/.eim/= are automatically loaded.
+Dictionaries with ".pyim" extension under the directory =~/.eim/= are automatically loaded.
 
 Please =curl -L http://tumashu.github.io/pyim-bigdict/pyim-bigdict.pyim.gz | zcat > ~/.eim/pyim-bigdict.pyim= to install dictionary for pyim. 
 ** Install multiple versions of Emacs
@@ -561,9 +601,9 @@ If elpy warns you that the python environment is corrupt, you have two solutions
 
 Solution 1, ignore the warning and turn off elpy by comment out =(elpy-enable)= in =init-python.el=. Then you won't have those python IDE things.
 
-Solution 2, fix your python environment. For example, if elpy gives the the error message =ImportError: No module named pkg_resources= on Ubuntu, a quick search will lead to [[https://askubuntu.com/questions/1006201/importerror-no-module-named-pkg-resources][this link.]] So a simple shell command =sudo apt install --reinstall python-pkg-resources python-setuptools= solves the problem.
+Solution 2, fix your python environment. For example, if elpy gives the error message =ImportError: No module named pkg_resources= on Ubuntu, a quick search will lead to [[https://askubuntu.com/questions/1006201/importerror-no-module-named-pkg-resources][this link.]] So a simple shell command =sudo apt install --reinstall python-pkg-resources python-setuptools= solves the problem.
 
-Solution 2 might be better because you couldn't do any serious coding anyway if the python environment is broken, .
+Solution 2 might be better because you couldn't do any serious coding anyway if the python environment is broken.
 * Support legacy Emacs versions
 ** Emacs 23
 Version 1.2 of this setup is the last version to support Emacs v23.

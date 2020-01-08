@@ -1,6 +1,7 @@
 ;; -*- coding: utf-8; lexical-binding: t; -*-
 
 ;; @see https://github.com/abo-abo/hydra
+;; color could: red, blue, amaranth, pink, teal
 
 ;; use similar key bindings as init-evil.el
 (defhydra hydra-launcher (:color blue)
@@ -48,7 +49,7 @@
   ("O" emms-play-playlist)
   ("b" dianyou-switch-gnus-buffer)
   ("L" emms-playlist-mode-go)
-  ("q" nil))
+  ("q" nil :color red))
 
 ;; Because in message-mode/article-mode we've already use `y' as hotkey
 (global-set-key (kbd "C-c C-y") 'hydra-launcher/body)
@@ -115,7 +116,7 @@
        "
 [_o_] Save attachment        [_F_] Forward
 [_v_] Play video/audio       [_r_] Reply
-[_d_] CLI to dowloand stream [_R_] Reply with original
+[_d_] CLI to download stream [_R_] Reply with original
 [_b_] Open external browser  [_w_] Reply all (S w)
 [_f_] Click link/button      [_W_] Reply all with original (S W)
 [_g_] Focus link/button      [_b_] Switch Gnus buffer
@@ -178,18 +179,25 @@
        "Extract mp3 from current video file using ffmpeg."
        (interactive)
        (let* ((video-file (file-name-nondirectory (dired-file-name-at-point)))
-              (params (split-string (string-trim (read-string "start-second [total seconds] (e.g, \"6 10\" or \"05:30 5\"): "))
+              (params (split-string (string-trim (read-string "Please input start-second [total seconds] (e.g, \"6 10\" or \"05:30 5\") or just press enter: "))
                                     " +"))
               (start (car params))
               (total (if (eq (length params) 1) "5" (nth 1 params)))
               cmd)
-         (unless (string= start "")
+         (cond
+          ((string= start "")
+           ;; extract audio to MP3 with sample rate 44.1Khz (CD quality), stereo, and 2 channels
+           (setq cmd (format "ffmpeg -i \"%s\" -vn -ar 44100 -ac 2 -ab 192 -f mp3 \"%s\""
+                             video-file
+                             (concat (file-name-base video-file) ".mp3"))))
+          (t
            (setq cmd (format "ffmpeg -i \"%s\" -vn -ss %s -t %s -acodec copy \"%s\""
-                                  video-file
-                                  start
-                                  total
-                                  (format "%s-%s-%s.mp3" (file-name-base video-file) start total)))
-           (shell-command (concat cmd " &")))))
+                             video-file
+                             start
+                             total
+                             (format "%s-%s-%s.mp3" (file-name-base video-file) start total)))))
+           (shell-command (concat cmd " &"))))
+
      (defun my-record-wav-by-mp3 ()
        "Record a wav using meta data from current mp3 file."
        (interactive)
@@ -297,9 +305,6 @@ _i_ indent-tabs-mode:   %`indent-tabs-mode
 ;; {{ @see https://github.com/abo-abo/hydra/wiki/Window-Management
 
 ;; helpers from https://github.com/abo-abo/hydra/blob/master/hydra-examples.el
-(unless (featurep 'windmove)
-  (require 'windmove))
-
 (defun hydra-move-splitter-left (arg)
   "Move window splitter left."
   (interactive "p")
@@ -390,33 +395,42 @@ _SPC_ cancel _o_nly this     _d_elete
 ;; }}
 
 ;; {{ git-gutter, @see https://github.com/abo-abo/hydra/wiki/Git-gutter
-(defhydra hydra-git-gutter (:body-pre (git-gutter-mode 1)
-                                      :hint nil)
-  "
-Git gutter:
-  _j_: next hunk     _s_tage hunk   _q_uit
-  _k_: previous hunk _r_evert hunk  _Q_uit and deactivate git-gutter
-  _h_: first hunk    _p_opup hunk
-  _l_: last hunk     set _R_evision
+(defhydra hydra-git (:body-pre
+                     (progn
+                       (git-gutter-mode 1)
+                       (setq git-link-use-commit t))
+                     :after-exit (setq git-link-use-commit nil)
+                     :color blue)
 "
-  ("j" git-gutter:next-hunk)
-  ("k" git-gutter:previous-hunk)
-  ("h" (progn (goto-char (point-min))
-              (git-gutter:next-hunk 1)))
-  ("l" (progn (goto-char (point-min))
-              (git-gutter:previous-hunk 1)))
-  ("s" git-gutter:stage-hunk)
-  ("r" git-gutter:revert-hunk)
-  ("p" git-gutter:popup-hunk)
-  ("R" git-gutter:set-start-revision)
-  ("q" nil :color blue)
-  ("Q" (progn (git-gutter-mode -1)
-              ;; git-gutter-fringe doesn't seem to
-              ;; clear the markup right away
-              (sit-for 0.1)
-              (git-gutter:clear))
-   :color blue))
-(global-set-key (kbd "C-c C-g") 'hydra-git-gutter/body)
+Git:
+[_i_] Gist selected      [_dd_] Diff
+[_s_] Show commit        [_dc_] Diff staged
+[_r_] Reset gutter       [_dr_] Diff range
+[_h_] Gutter => HEAD     [_au_] Add modified
+[_l_] Log selected/file  [_cc_] Commit
+[_b_] Branches           [_ca_] Amend
+[_k_] Git commit link    [_tt_] Stash
+[_Q_] Quit gutter        [_ta_] Apply Stash
+"
+  ("i" gist-region)
+  ("r" git-gutter-reset-to-default)
+  ("s" my-git-show-commit)
+  ("l" magit-log-buffer-file)
+  ("b" magit-show-refs-popup)
+  ("h" git-gutter-reset-to-head-parent)
+  ("k" git-link)
+  ("g" magit-status)
+  ("ta" magit-stash-apply)
+  ("tt" magit-stash)
+  ("dd" magit-diff-dwim)
+  ("dc" magit-diff-staged)
+  ("dr" (progn (magit-diff-range (my-git-commit-id))))
+  ("cc" magit-commit-popup)
+  ("ca" magit-commit-amend)
+  ("au" magit-stage-modified)
+  ("Q" git-gutter-toggle)
+  ("q" nil))
+(global-set-key (kbd "C-c C-g") 'hydra-git/body)
 ;; }}
 
 (defhydra hydra-search ()
