@@ -171,7 +171,7 @@ You still need modify `package-archives' in \"init-elpa.el\" to PERMANENTLY use 
 
 ;; Un-comment below line if you follow "Install stable version in easiest way"
 ;; (setq package-archives '(("localelpa" . "~/.emacs.d/localelpa/") ("myelpa" . "~/projs/myelpa/")))
-(setq my-local-elpa-repo "~/pkg/myelpa")
+(setq my-local-elpa-repo "~/myelpa")
 (when (file-accessible-directory-p  my-local-elpa-repo)
   (setq package-archives `(("myelpa" . ,my-local-elpa-repo))))
 
