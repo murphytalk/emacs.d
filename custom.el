@@ -206,11 +206,7 @@
 (global-set-key (kbd "M-p") 'helm-ls-git-ls)
 
 (global-set-key [(control -)] 'set-mark-command)
-(when (not (equal nil org-idx))
-  (global-set-key [f2]
-                  '(lambda()
-                     (interactive)
-                     (find-file org-idx))))
+(global-set-key [f2] 'deft)
 (global-set-key [f4] 'ibuffer)
 (global-set-key [f5] 'neotree-toggle)
 (global-set-key [(meta g)] 'goto-line)
