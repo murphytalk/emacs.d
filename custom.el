@@ -18,11 +18,6 @@
 (setq visible-bell 1)
 
 ;;-------------------------------------------
-;; save emacs custom craps in another file
-;;-------------------------------------------
-(setq custom-file "~/.emacs.d/.my-emacs-custom.el")
-
-;;-------------------------------------------
 ;; GUI font
 ;(load-theme 'gruber-darker 't)
 (load-theme 'molokai 't)
@@ -193,30 +188,12 @@
                (not *emacs24old)))
   (superword-mode t))
 
-;;==========================================================================
-;;Override upstream configuration
-;;==========================================================================
-;; w3m search
-;; C-u S g RET <search term> RET in w3m
-(setq w3m-search-engine-alist '(("g" "http://www.google.co.jp/search?q=%s" utf-8)
-                                ;; stackoverflow search
-                                ("q" "http://www.google.co.jp/search?q=%s+site:stackoverflow.com"
-                                 utf-8)
-                                ;; elisp code search
-                                ("s" "http://www.google.co.jp/search?q=%s+filetype:el"  utf-8)
-                                ;; wikipedia
-                                ("w" "http://en.wikipedia.org/wiki/Special:Search?search=%s" utf-8)
-                                ;; online dictionary
-                                ("d" "http://dictionary.reference.com/search?q=%s" utf-8)
-                                ;; java google search
-                                ("java" "https://www.google.co.jp/search?q=java+%s" utf-8)
-                                ;; financial dictionary
-                                ("f" "http://financial-dictionary.thefreedictionary.com/%s" utf-8)
-                                ;; javascript search on mozilla.orgb
-                                ("j"
-                                 "http://www.google.co.jp/search?q=%s+site:developer.mozilla.org"
-                                 utf-8)))
-
+;;===========================================================================
+;; host specific config
+;;===========================================================================
+(setq host-custom-init (concat "~/" system-name ".el"))
+(if (file-exists-p host-custom-init)
+    (load-file host-custom-init))
 
 ;;===========================================================================
 ;; Keys mapping
