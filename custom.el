@@ -136,30 +136,26 @@
 ;;==========================================================================
 ;; org publication
 ;;==========================================================================
-(when (not (boundp 'org-idx))
-  (setq org-idx (getenv "ORGIDX")))
-
-(when (not (equal nil org-idx))
-  (require 'ox-publish)
-  ;; Setup
-  (setq org-base-dir (file-name-directory org-idx))
-  (setq org-pub-dir (concat org-base-dir "html"))
-  (setq org-publish-project-alist `(("org-files" :base-directory  ,org-base-dir
-                                     :base-extension "org"
-                                     :recursive t
-                                     :publishing-directory ,org-pub-dir
-                                     :publishing-function org-html-publish-to-html
-                                     :headline-levels 4
-                                     :auto-preamble t
-                                     :html-head-extra
-                                     "<link rel=\"stylesheet\" href=\"https://jgkamat.github.io/src/jgkamat.css\">")
-                                    ("static-files" :base-directory ,org-base-dir
-                                     :base-extension
-                                     "css\\|js\\|png\\|jpg\\|gif\\|pdf\\|mp3\\|ogg\\|swf"
-                                     :publishing-directory ,org-pub-dir
-                                     :recursive t
-                                     :publishing-function org-publish-attachment)
-                                    ("org" :components ("org-files" "static-files")))))
+(require 'ox-publish)
+;; Setup
+(setq org-base-dir (file-name-directory deft-directory))
+(setq org-pub-dir (concat org-base-dir "html"))
+(setq org-publish-project-alist `(("org-files" :base-directory  ,org-base-dir
+                                   :base-extension "org"
+                                   :recursive t
+                                   :publishing-directory ,org-pub-dir
+                                   :publishing-function org-html-publish-to-html
+                                   :headline-levels 4
+                                   :auto-preamble t
+                                   :html-head-extra
+                                   "<link rel=\"stylesheet\" href=\"https://jgkamat.github.io/src/jgkamat.css\">")
+                                  ("static-files" :base-directory ,org-base-dir
+                                   :base-extension
+                                   "css\\|js\\|png\\|jpg\\|gif\\|pdf\\|mp3\\|ogg\\|swf"
+                                   :publishing-directory ,org-pub-dir
+                                   :recursive t
+                                   :publishing-function org-publish-attachment)
+                                  ("org" :components ("org-files" "static-files"))))
 
 ;;==========================================================================
 ;; Code parser
