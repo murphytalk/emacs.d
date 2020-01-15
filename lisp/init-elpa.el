@@ -122,6 +122,7 @@
     magit-popup
     elisp-format
     transient
+    kotlin-mode
     )
   "Packages to install from melpa-unstable.")
 
@@ -251,6 +252,7 @@ PACKAGE is a symbol, VERSION is a vector as produced by `version-to-list', and
 (require-package 'deft)
 (require-package 'csharp-mode)
 (require-package 'ahk-mode)
+(require-package 'kotlin-mode)
 ;;------------------------------------------------------------------------------
 ;; For cquery
 ;;------------------------------------------------------------------------------
