@@ -8,4 +8,5 @@
 
 (add-to-list 'auto-mode-alist '("\\.profile-Darwin\\'" . sh-mode))
 (add-to-list 'auto-mode-alist '("\\.profile-unix\\'" . sh-mode))
+(add-to-list 'auto-mode-alist '("\\.functions\\'" . sh-mode))
 (provide 'init-sh)
