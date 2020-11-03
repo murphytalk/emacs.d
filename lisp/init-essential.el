@@ -37,46 +37,6 @@
                 keyword))))
       (counsel-etags-grep)))))
 
-;; {{ message buffer things
-(defun erase-specific-buffer (num buf-name)
-  "Erase the content of the buffer with BUF-NAME.
-Keep the last NUM lines if argument num if given."
-  (let* ((message-buffer (get-buffer buf-name))
-         (old-buffer (current-buffer)))
-    (save-excursion
-      (if (buffer-live-p message-buffer)
-          (progn
-            (switch-to-buffer message-buffer)
-            (if (not (null num))
-                (progn
-                  (end-of-buffer)
-                  (dotimes (i num)
-                    (previous-line))
-                  (set-register t (buffer-substring (point) (point-max)))
-                  (erase-buffer)
-                  (insert (get-register t))
-                  (switch-to-buffer old-buffer))
-              (progn
-                (erase-buffer)
-                (switch-to-buffer old-buffer))))
-        (error "Message buffer doesn't exists!")))))
-
-
-(defun erase-message-buffer (&optional num)
-  "Erase the content of the *Messages* buffer.
-Keep the last NUM lines if argument num if given."
-  (interactive "p")
-  (erase-specific-buffer num "*Messages*"))
-
-;; turn off read-only-mode in *Message* buffer, a "feature" in v24.4
-(when (fboundp 'messages-buffer-mode)
-  (defun messages-buffer-mode-hook-setup ()
-    (message "messages-buffer-mode-hook-setup called")
-    (read-only-mode -1))
-  (add-hook 'messages-buffer-mode-hook 'messages-buffer-mode-hook-setup))
-
-;; }}
-
 ;; {{ narrow region
 (defun narrow-to-region-indirect-buffer-maybe (start end use-indirect-buffer)
   "Indirect buffer could multiple widen on same file."
@@ -147,5 +107,85 @@ If USE-INDIRECT-BUFFER is not nil, use `indirect-buffer' to hold the widen conte
                                             use-indirect-buffer))
    (t (error "Please select a region to narrow to"))))
 ;; }}
+
+(defun my-swiper (&optional other-source)
+  "Search current file.
+If OTHER-SOURCE is 1, get keyword from clipboard.
+If OTHER-SOURCE is 2, get keyword from `kill-ring'."
+  (interactive "P")
+  (let* ((keyword (cond
+                   ((eq 1 other-source)
+                    (cliphist-select-item))
+                   ((eq 2 other-source)
+                    (my-select-from-kill-ring 'identity))
+                   ((region-active-p)
+                    (my-selected-str)))))
+    ;; `swiper--re-builder' read from `ivy-re-builders-alist'
+    ;; more flexible
+    (swiper keyword)))
+
+(with-eval-after-load 'cliphist
+  (defun cliphist-routine-before-insert-hack (&optional arg)
+    (ignore arg)
+    (my-delete-selected-region))
+  (advice-add 'cliphist-routine-before-insert :before #'cliphist-routine-before-insert-hack))
+
+;; {{ Write backup files to its own directory
+;; @see https://www.gnu.org/software/emacs/manual/html_node/tramp/Auto_002dsave-and-Backup.html
+(defvar my-binary-file-name-regexp
+  "\\.\\(avi\\|wav\\|pdf\\|mp[34g]\\|mkv\\|exe\\|3gp\\|rmvb\\|rm\\|pyim\\|\\.recentf\\)$"
+  "Is binary file name?")
+
+(setq backup-enable-predicate
+      (lambda (name)
+        (and (normal-backup-enable-predicate name)
+             (not (string-match-p my-binary-file-name-regexp name)))))
+
+(let* ((backup-dir (expand-file-name "~/.backups")))
+  (unless (file-exists-p backup-dir) (make-directory backup-dir))
+  (setq backup-by-copying t ; don't clobber symlinks
+        backup-directory-alist (list (cons "." backup-dir))
+        delete-old-versions t
+        version-control t  ;use versioned backups
+        kept-new-versions 8
+        kept-old-versions 4))
+
+;; Donot make backups of files, not safe
+;; @see https://github.com/joedicastro/dotfiles/tree/master/emacs
+(setq vc-make-backup-files nil)
+;; }}
+
+(with-eval-after-load 'tramp
+  (push (cons tramp-file-name-regexp nil) backup-directory-alist)
+
+;; @see https://github.com/syl20bnr/spacemacs/issues/1921
+;; If you tramp is hanging, you can uncomment below line.
+;; (setq tramp-ssh-controlmaster-options "-o ControlMaster=auto -o ControlPath='tramp.%%C' -o ControlPersist=no")
+
+  (setq tramp-chunksize 8192))
+
+
+;; {{ GUI frames
+;; Suppress GUI features
+(setq use-file-dialog nil)
+(setq use-dialog-box nil)
+(setq inhibit-startup-screen t)
+(setq inhibit-startup-echo-area-message t)
+
+;; Show a marker in the left fringe for lines not in the buffer
+(setq indicate-empty-lines t)
+
+(defun my-mini-ui ()
+  "Minimum ui."
+  ;; NO tool bar, scroll-bar
+  (when window-system
+    (scroll-bar-mode -1)
+    (tool-bar-mode -1)
+    (horizontal-scroll-bar-mode -1)))
+(run-with-idle-timer 2 nil #'my-mini-ui)
+;; }}
+
+;; no menu bar
+(menu-bar-mode -1)
 
 (provide 'init-essential)
