@@ -133,7 +133,7 @@
   (require-init 'init-sh) ;; todo : deleted in upstream
   ;(require-init 'init-ctags t)
   ;(require-init 'init-bbdb t)
-  ;(require-init 'init-gnus t)
+  (require-init 'init-gnus t)
   (require-init 'init-lua-mode t)
   (require-init 'init-workgroups2 t) ; use native API in lightweight mode
   (require-init 'init-term-mode t)
@@ -187,6 +187,7 @@
     ;; my personal setup, other major-mode specific setup need it.
     ;; It's dependent on *.el in `my-site-lisp-dir'
     (load (expand-file-name "~/.custom.el") t nil)))
+)
 
 
 ;; @see https://www.reddit.com/r/emacs/comments/55ork0/is_emacs_251_noticeably_slower_than_245_on_windows/
